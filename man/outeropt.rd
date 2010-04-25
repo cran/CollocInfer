@@ -70,4 +70,8 @@ proc= profile.obj$proc
 
 res = outeropt(data=FhNdata,times=FhNtimes,pars=FhNpars,coefs=coefs,lik=lik,proc=proc,
     in.meth="nlminb",out.meth="nlminb",control.in=NULL,control.out=NULL)
+
+
+plot(res$coefs,main='outeropt')
+print(blah)
 }}

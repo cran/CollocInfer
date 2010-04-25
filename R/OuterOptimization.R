@@ -407,10 +407,11 @@ ProfileDP.AllPar = function(pars, times, data, coefs, lik, proc,
 
 #    coefs = as.vector(coefs)    
 
-    d2Hdc2 = SplineCoefsDC2(coefs,times,data,lik,proc,pars)
+    d2Hdc2 = SplineCoefsDC2sparse(coefs,times,data,lik,proc,pars)
     d2Hdcdp = SplineCoefsDCDP(coefs,times,data,lik,proc,pars)
   
-    dcdp = -ginv(d2Hdc2)%*%d2Hdcdp
+    if(is.matrix(d2Hdc2)){ dcdp = -ginv(d2Hdc2)%*%d2Hdcdp }
+    else{ dcdp = -as.matrix(solve(d2Hdc2,d2Hdcdp)) }
   
    
     if(sumlik){
@@ -434,7 +435,7 @@ ProfileDP.AllPar = function(pars, times, data, coefs, lik, proc,
         
         df = dlikdc%*%dcdp + dlikdp
         
-        return(df)
+        return(as.matrix(df))
     }
 }
 
@@ -598,10 +599,11 @@ ProfileSSE.AllPar = function(pars, times, data, coefs, lik, proc,
         dlikdc = rbind(dlikdc,tH)
     }
 
-    d2Hdc2  = SplineCoefsDC2(ncoefs,times,data,lik,proc,pars)
+    d2Hdc2  = SplineCoefsDC2sparse(ncoefs,times,data,lik,proc,pars)
     d2Hdcdp = SplineCoefsDCDP(ncoefs,times,data,lik,proc,pars)
 
-    dcdp = ginv(d2Hdc2) %*% d2Hdcdp
+    if(is.matrix(d2Hdc2)){ dcdp = ginv(d2Hdc2) %*% d2Hdcdp}
+    else{ dcdp = as.matrix(solve(d2Hdc2,d2Hdcdp)) }
 
     df = dlikdc%*%dcdp + dlikdp
     df[isnaf,] = 0

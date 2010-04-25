@@ -8,11 +8,11 @@ and multinormal processes.}
 \usage{
 LS.setup(pars,coefs=NULL,fn,basisvals=NULL,lambda,fd.obj=NULL,
         more=NULL,data=NULL,weights=NULL,times=NULL,quadrature=NULL,eps=1e-6,
-        posproc=0,poslik=0,discrete=0,names=NULL)
+        posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
 
 multinorm.setup(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.obj=NULL,
         more=NULL,data=NULL,times=NULL,quadrature=NULL,eps=1e-6,posproc=0,
-        poslik=0,discrete=0,names=NULL)
+        poslik=0,discrete=0,names=NULL,sparse=FALSE)
 }
 \arguments{
 \item{pars}{ Initial values of parameters to be estimated processes. }
@@ -70,6 +70,9 @@ an exponentiated basis expansion in the \code{proc} object. }
 on the log scale \code{posproc=1}, this is an alternative to taking the log of the data. }
 \item{discrete}{ Is this a discrete or continuous-time system?}
 \item{names}{ The names of the state variables if not given by the column names of \code{coefs}.}
+\item{sparse}{ Should sparse matrices be used for basis values? This option can save memory when 
+\code{ProfileGausNewt} and \code{SplineEstNewtRaph} are called. Otherwise sparse matrices will be converted to 
+full matrices and this can slow the code down.}
 }
 \value{A list with elements
 \item{coefs}{Starting values for \code{coefs}}
@@ -125,5 +128,4 @@ coefs = matrix(0,200,2)
 lambda = 10000
 
 profile.obj = LS.setup(pars=hpars,coefs=coefs,fn=make.Henon(),basisvals=NULL,lambda=lambda,times=t,discrete=1)
-
 }

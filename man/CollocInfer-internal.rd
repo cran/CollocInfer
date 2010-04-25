@@ -2,6 +2,7 @@
 \title{CollocInfer internal functions}
 \description{Internal undocumentation functions}
 \usage{blocks2mat(H)}
+\alias{SplineCoefsDC2sparse}
 \alias{ProfileSSE.AllPar}
 \alias{ProfileErr.AllPar}
 \alias{ProfileDP.AllPar}

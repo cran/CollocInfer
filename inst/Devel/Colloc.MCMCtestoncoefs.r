@@ -1,6 +1,5 @@
 Colloc.MCMC = function(times,data,pars,coefs,lik,proc,prior,walk.var,cscale,nstep,in.meth='SplineEst',control.in=NULL)
 {
-
     parhist = matrix(0,nstep,length(pars))                     # Store parameter history
     coefhist = matrix(0,nstep,length(coefs))
     bestcoefhist = matrix(0,nstep,length(coefs))
@@ -12,20 +11,19 @@ Colloc.MCMC = function(times,data,pars,coefs,lik,proc,prior,walk.var,cscale,nste
      pr = prior(pars)
     
     f = SplineCoefsErr(coefs,times,data,lik,proc,pars,sgn=-1)  + pr  # Complete data log posterior
-#print(proc$fn(coefs,bvals,pars,more))
 #    H = SplineCoefsDC2(coefs,times,data,lik,proc,pars,sgn=-1)
 #    G = SplineCoefsDCDP(coefs,times,data,lik,proc,pars,sgn=-1)
     
 #    dcdp = ginv(H)%*%G
  
     tcoefs = coefs
-    
+  #  
 #     ei = eigen(tH)
 #     eta = rnorm(length(coefs))
 #     logq = sum(eta^2)/2   
-
+#
 #     coefs = coefs + ei$vectors%*%diag(1/sqrt(ei$values*(ei$values>0)))%*%eta            
- 
+# 
 
     parhist[1,] = pars                              # Initialize
     bestcoefhist[1,]=tcoefs
@@ -59,12 +57,12 @@ Colloc.MCMC = function(times,data,pars,coefs,lik,proc,prior,walk.var,cscale,nste
   #       logq = -sum(eta^2)/2 - sum(log(ei$values[ei$values>0])/2)
           logq = sum(dnorm(eta,log=TRUE))
          
-         eta = cscale*ei$vectors%*%diag(1/sqrt(abs(ei$values))*(ei$values>0))%*%eta
+         eta = cscale*ei$vectors%*%diag(sqrt(ei$values*(ei$values>0)))%*%eta
        }
        
        tf =  SplineCoefsErr(as.vector(tcoefs)+eta,times,data,lik,proc,pars+delta,sgn=-1) + tpr - logq
-#                 print(proc$fn(matrix(as.vector(tcoefs),nrow=ncol(lik$bvals)),bvals,pars,more)) 
-print(c(tf,f,pars+delta, pr, tpr))
+       
+print(c(tf,f,logq,pars+delta))
        if( runif(1) < exp( tf-f)){             # Acceptance probability
           coefs = as.vector(tcoefs)+eta
           pars = pars + delta
@@ -79,9 +77,9 @@ print(c(tf,f,pars+delta, pr, tpr))
        }
        
        parhist[i,] = pars
-       coefhist[i,] = as.vector(tcoefs)+eta
+       coefhist[i,] = coefs
        bestcoefhist[i,] = res$coefs
     }
 
-   return(list(parhist=parhist, coefhist=coefhist, acc = acc, bch=bestcoefhist))
+   return(list(parhist=parhist, coefhist=coefhist, acc = acc))
 }

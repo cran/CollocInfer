@@ -35,9 +35,9 @@ Profile.covariance <- function(pars,active=NULL,times,data,coefs,lik,proc,in.met
       if(file.exists('optcoefs.tmp')){file.remove('optcoefs.tmp')}
       if(file.exists('counter.tmp')){file.remove('counter.tmp')}
     }
-               
+           
     Covar = NeweyWest.Var( 0.5*(t(H)+H) ,g,5)
-        
+            
     return( Covar )
 }
 
@@ -49,29 +49,62 @@ Profile.covariance <- function(pars,active=NULL,times,data,coefs,lik,proc,in.met
 #
 ############################################################################################
 
-
-blocks2mat = function(H)  # List of matrices -> large matrix
+blocks2mat = function(H)   # List of matrices -> large matrix
 {
+    rowdims = rep(0,length(H))
+    coldims = rep(0,length(H[[1]]))
+    for(i in 1:length(H[[1]])){ coldims[i] = ncol(H[[1]][[i]]) }
+    for(i in 1:length(H)){ rowdims[i] = ncol(H[[i]][[1]]) }
+    
+    if(is.matrix(H[[1]][[1]])){ out = matrix(0,sum(rowdims),sum(coldims)) }
+    else{ out = Matrix(0,sum(rowdims),sum(coldims),sparse=TRUE) }
 
-    out = c()
+    rowdims = cumsum(c(0,rowdims))
+    coldims = cumsum(c(0,coldims))
+
 
     for(i in 1:length(H)){
-      tout = H[[i]][[1]]
-      if(length(H[[i]])>1){
-        for(j in 2:length(H[[i]])){
-            if(inherits(H[[i]][[j]],'dgCMatrix')|inherits(H[[i]][[j]],'dgeMatrix')){ tout=cBind(tout,H[[i]][[j]]) }
-            else{ tout = cbind(tout,H[[i]][[j]]) }
-        }
+      for(j in 1:length(H[[i]])){
+        out[(rowdims[i]+1):rowdims[i+1],(coldims[j]+1):coldims[j+1]] = H[[i]][[j]]
       }
-      if(i > 1){ 
-        if(inherits(tout,'dgCMatrix')|inherits(tout,'dgeMatrix')){ out=rBind(out,tout) }
-        else{ out = rbind(out,tout) }
-      } 
-      else{ out = tout }
     }
 
     return(out)
 }
+
+
+
+#blocks2mat = function(H)  # List of matrices -> large matrix
+#{
+#
+#    out = c()
+#
+#
+#
+#    for(i in 1:length(H)){
+#      tout = H[[i]][[1]]
+#      if(length(H[[i]])>1){
+#        for(j in 2:length(H[[i]])){
+#        print(c(i,j))
+#            if(inherits(H[[i]][[j]],'dgCMatrix')|inherits(H[[i]][[j]],'dgeMatrix')){ tout=cBind(tout,H[[i]][[j]]) }
+#            else{ tout = cbind(tout,H[[i]][[j]]) }
+#        }
+#      }
+#      if(i > 1){
+#        if(inherits(tout,'dgCMatrix')|inherits(tout,'dgeMatrix')){
+#          print('still sparse')
+#          print(c(dim(out),dim(tout)))
+#          out=rBind(out,tout)
+#          print(is.matrix(out))
+#        }
+#        else{ out = rbind(out,tout) }
+#      }
+#      else{ out = tout }
+#    }
+#
+#    print('hello')
+#    return(out)
+#}
 
 ## Newey West Calculations, with thanks to Steve Ellner
 
@@ -113,8 +146,7 @@ NeweyWest.Var = function(H,g,maxlag)
         }
      
     }
-
-    return( V%*%(I+ t(g)%*%g)%*%V )
+    return( V%*%(I+ t(g)%*%g)%*%V  )
 
 }
 

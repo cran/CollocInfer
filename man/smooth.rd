@@ -6,11 +6,11 @@
 \usage{
 Smooth.LS(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,fd.obj=NULL,
         more=NULL,weights=NULL,quadrature=NULL,in.meth='nlminb',
-        control.in,eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL)
+        control.in,eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
         
 Smooth.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
         fd.obj=NULL,more=NULL,quadrature=NULL,in.meth='nlminb',
-        control.in,eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL)
+        control.in,eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
 }
 \arguments{
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
@@ -65,6 +65,9 @@ an exponentiated basis expansion in the \code{proc} object. }
 on the log scale \code{posproc=1}, this is an alternative to taking the log of the data. }
 \item{discrete}{ Is this a discrete or continuous-time system?}
 \item{names}{ The names of the state variables if not given by the column names of \code{coefs}.}
+\item{sparse}{ Should sparse matrices be used for basis values? This option can save memory when 
+\code{ProfileGausNewt} and \code{SplineEstNewtRaph} are called. Otherwise sparse matrices will be converted to 
+full matrices and this can slow the code down.}
 }
 \value{A list with elements
 \item{coefs}{Optimized coefficients at \code{pars}}
@@ -109,4 +112,5 @@ var = c(1,0.01)
 
 res2 = Smooth.multinorm(make.Henon(),data=Y,t,pars=hpars,coefs,basisvals=NULL,
   var=var,in.meth='nlminb',discrete=1)
+  
 }

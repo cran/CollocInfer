@@ -35,5 +35,7 @@ names(pars) = c('a','b','c')
 ts = seq(0,20,0.5)
 
 value = IntegrateForward(y0,ts,pars,proc)
+
+matplot(value$times,value$states)
 }
 

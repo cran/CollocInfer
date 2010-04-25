@@ -10,7 +10,7 @@ Profile.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c
                         fd.obj=NULL,more=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='optim',
                         control.in=list(),control.out=list(),eps=1e-6,
-                        active=NULL,posproc=0,poslik=0,discrete=0,names=NULL)
+                        active=NULL,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
 {
 
     dims = dim(data)
@@ -18,7 +18,8 @@ Profile.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c
 
 
     profile.obj = multinorm.setup(pars,coefs,fn,basisvals,var,fd.obj,more,
-    data,times,quadrature,eps=1e-6,posproc=posproc,poslik=poslik,discrete=discrete,names=names)
+          data,times,quadrature,eps=1e-6,posproc=posproc,poslik=poslik,
+          discrete=discrete,names=names,sparse=sparse)
     
     lik  = profile.obj$lik
     proc = profile.obj$proc
@@ -58,13 +59,13 @@ Profile.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c
 Smooth.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
                         fd.obj=NULL,more=NULL,quadrature=NULL,
                         in.meth='nlminb',control.in=list(),
-                        eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL)
+                        eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
 {
 
     dims = dim(data)
     profile.obj = multinorm.setup(pars,coefs,fn,basisvals,var,fd.obj,more,
-    data,times,quadrature,eps=1e-6,posproc=posproc,poslik=poslik,
-    discrete=discrete,names=names)
+        data,times,quadrature,eps=1e-6,posproc=posproc,poslik=poslik,
+        discrete=discrete,names=names,sparse=sparse)
 
     lik  = profile.obj$lik
     proc = profile.obj$proc
@@ -95,7 +96,7 @@ Smooth.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(
 
 multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.obj=NULL,
   more=NULL,data=NULL,times=NULL,quadrature=NULL,eps=1e-6,posproc=0,poslik=0,
-  discrete=0,names=NULL)
+  discrete=0,names=NULL,sparse=FALSE)
 {
 
     if(!is.null(data) & length(dim(data))>2){
@@ -173,8 +174,13 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
         stop('if basisvals is is a basis object, you must specify the observation times')
       }
 
-       lik$bvals = Matrix(diag(rep(1,nrep)) %x% eval.basis(times,basisvals),sparse=TRUE)
-       
+      if(sparse){
+        lik$bvals = Matrix(diag(rep(1,nrep)) %x% 
+                   eval.basis(times,basisvals),sparse=TRUE)
+      } else{
+        lik$bvals = diag(rep(1,nrep)) %x% eval.basis(times,basisvals)
+      }      
+             
       if(is.null(quadrature) | is.null(quadrature$qpts)){
         knots = c(basisvals$rangeval[1],basisvals$params,basisvals$rangeval[2])
         qpts = knots[-length(knots)] + diff(knots)/2
@@ -190,29 +196,56 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       proc$bvals = list()
      
       if(discrete==0){
-        proc$bvals$bvals = Matrix(diag(rep(1,nrep))%x%eval.basis(qpts,basisvals,0),sparse=TRUE)
-        proc$bvals$dbvals =  Matrix(diag(rep(1,nrep))%x%eval.basis(qpts,basisvals,1),sparse=TRUE)
+        if(sparse){
+          proc$bvals$bvals  = Matrix(diag(rep(1,nrep)) %x% 
+                                     eval.basis(qpts,basisvals,0),sparse=TRUE)
+          proc$bvals$dbvals = Matrix(diag(rep(1,nrep)) %x%
+                                     eval.basis(qpts,basisvals,1),sparse=TRUE)
+        }else{
+          proc$bvals$bvals  = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,0)
+          proc$bvals$dbvals = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,1)        
+        }
         proc$more$qpts = rep(qpts,nrep)
         proc$mroe$weights = rep(weights,nrep)
       }
       else{
        len = length(times)
-       proc$bvals = Matrix(diag(rep(1,nrep))%x%eval.basis(times,basisvals,0),sparse=TRUE)
+       if(sparse){
+         proc$bvals = list(bvals = Matrix(basis[1:(len-1),], sparse=TRUE),
+                           dbvals= Matrix(basis[2:len,],     sparse=TRUE))
+       } else{
+         proc$bvals = list(bvals = basis[1:(len-1),],
+                           dbvals= basis[2:len,])       
+       }
        proc$more$qpts = rep(times[1:(len-1)],nrep)
       }
     }
     else{    
       if(discrete & (is.matrix(basisvals) | is.null(basisvals))){
         if(is.null(basisvals)){ basisvals = Diagonal(nrow(coefs)) }
-        lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals,sparse=TRUE)
-        proc$bvals = Matrix(diag(rep(1,nrep))%x%basisvals,sparse=TRUE)
+        if(sparse){
+          lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals,sparse=TRUE)
+          proc$bvals = Matrix(diag(rep(1,nrep))%x%basisvals,sparse=TRUE)
+        }else{
+          lik$bvals = diag(rep(1,nrep))%x%basisvals
+          proc$bvals = diag(rep(1,nrep))%x%basisvals      
+        }
         proc$more$qpts = rep(times[1:(length(times)-1)],nrep)
       }                                    
       else{                                  
-        lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals$bvals.obs,sparse=TRUE)
-  
-        proc$bvals =  list(bvals=Matrix(diag(rep(1,nrep))%x%basisvals$bvals,sparse=TRUE),
-                          dbvals=Matrix(diag(rep(1,nrep))%x%basisvals$dbvals,sparse=TRUE))
+        if(sparse){                                 
+          lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals$bvals.obs,sparse=TRUE)
+    
+          proc$bvals =  list(bvals=Matrix(diag(rep(1,nrep)) %x% 
+                                          basisvals$bvals,sparse=TRUE),
+                            dbvals=Matrix(diag(rep(1,nrep)) %x%
+                                          basisvals$dbvals,sparse=TRUE))
+        } else{
+          lik$bvals = diag(rep(1,nrep))%x%basisvals$bvals.obs
+    
+          proc$bvals =  list(bvals=diag(rep(1,nrep)) %x% basisvals$bvals,
+                            dbvals= diag(rep(1,nrep)) %x%basisvals$dbvals)        
+        }
         proc$more$qpts = rep(basisvals$qpts,nrep)
         proc$more$weights = rep(basisvals$weights,nrep)
       } 

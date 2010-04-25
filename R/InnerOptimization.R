@@ -42,11 +42,12 @@ inneropt <- function(data,times,pars,coefs,lik,proc,in.meth='nlminb',control.in=
       if( is.null(control.in$maxit) ){ control.in$maxit = 1000 }
       if( is.null(control.in$reltol) ){ control.in$reltol = 1e-12}
       if( is.null(control.in$meth) ){ control.in$meth = "BFGS" }
+      if( is.null(control.in$reportHessian)){ control.in$reportHessian = TRUE }
       
       imeth = control.in$meth
       control.in$meth = NULL
       
-        res = optim(coefs,SplineCoefsErr,gr=SplineCoefsDC,hessian=T,
+        res = optim(coefs,SplineCoefsErr,gr=SplineCoefsDC,hessian=control.in$reportHessian,
             control=control.in,times=times,data=data,lik=lik,proc=proc,pars=pars,method=imeth)
 
         ncoefs = matrix(res$par,ncol(lik$bvals),length(res$par)/ncol(lik$bvals))
@@ -56,8 +57,11 @@ inneropt <- function(data,times,pars,coefs,lik,proc,in.meth='nlminb',control.in=
       if( is.null(control.in$trace) ){ control.in$trace = 0 }
       if( is.null(control.in$eval.max) ){ control.in$eval.max = 2000 }
       if( is.null(control.in$iter.max) ){ control.in$iter.max = 1000 }
-      if( is.null(control.in$rel.tol) ){ control.in$rel.tol = 1e-12 }       
-        res = nlminb(coefs,SplineCoefsErr,gradient=SplineCoefsDC,hessian=SplineCoefsDC2,
+      if( is.null(control.in$rel.tol) ){ control.in$rel.tol = 1e-12 }  
+      if( is.null(control.in$useHessian) ){ Hessian = SplineCoefsDC2 }
+      else{ Hessian = NULL } 
+          
+        res = nlminb(coefs,SplineCoefsErr,gradient=SplineCoefsDC,hessian=Hessian,
             control=control.in,times=times,data=data,lik=lik,proc=proc,pars=pars)
 
         ncoefs = matrix(res$par,ncol(lik$bvals),length(res$par)/ncol(lik$bvals))
@@ -67,9 +71,11 @@ inneropt <- function(data,times,pars,coefs,lik,proc,in.meth='nlminb',control.in=
         if(is.null(control.in$print.level)){control.in$print.level = 1}
         if(is.null(control.in$iterlim)){control.in$iterlim = 1000}
         if(is.null(control.in$reltol)){control.in$reltol = 1e-12}
+        if( is.null(control.in$useHessian) ){ Hessian = SplineCoefsDC2 }
+        else{ Hessian = NULL } 
     
         res = maxNR(SplineCoefsErr,coefs,times=times,data=data,lik=lik,proc=proc,pars=pars,sgn=-1,
-            grad=SplineCoefsDC,hess=SplineCoefsDC2,print.level=control.in$print.level,
+            grad=SplineCoefsDC,hess=Hessian,print.level=control.in$print.level,
             iterlim = control.in$iterlim)
 
         ncoefs = matrix(res$estimate,ncol(lik$bvals),length(res$estimate)/ncol(lik$bvals))
@@ -81,8 +87,10 @@ inneropt <- function(data,times,pars,coefs,lik,proc,in.meth='nlminb',control.in=
         if(is.null(control.in$parscale)){ control.in$parscale = abs(coefs)}
         if(is.null(control.in$iterlim)){ control.in$iterlim = 100}
         
-        res = trust(SplineCoefsList,coefs,rinit=control.in$rinit,rmax=control.in$rmax,parscale=control.in$parscale,iterlim=control.in$iterlim,
-          times=time,data=data,lik=lik,proc=proc,pars=pars,sgn=1)
+        res = trust(SplineCoefsList,coefs,rinit=control.in$rinit,
+                    rmax=control.in$rmax,parscale=control.in$parscale,
+                    iterlim=control.in$iterlim,
+                    times=time,data=data,lik=lik,proc=proc,pars=pars,sgn=1)
     
         ncoefs = matrix(res$argument,dim(coefs))
     }
@@ -107,9 +115,10 @@ SplineEst.NewtRaph = function(coefs,times,data,lik,proc,pars,
   
     f0 = SplineCoefsErr(coefs,times,data,lik,proc,pars)
     g = SplineCoefsDC(coefs,times,data,lik,proc,pars)
-    H = SplineCoefsDC2(coefs,times,data,lik,proc,pars)
+    H = SplineCoefsDC2sparse(coefs,times,data,lik,proc,pars)
 
-    DC = -ginv(H)%*%g
+    if(is.matrix(H)){ DC = -ginv(H)%*%g  }
+    else{ DC = -as.matrix(solve(H,g)) }
 
     gradnorm1 = 1
     fundif = 1
@@ -121,11 +130,14 @@ SplineEst.NewtRaph = function(coefs,times,data,lik,proc,pars,
     while( gradnorm1 > control$reltol & fundif > 0 & iter < control$maxit){
   
         iter = iter + 1    
-        DC = -ginv(H)%*%g
+        if( is.matrix(H) ){ DC = -ginv(H)%*%g }
+        else{ DC = -as.matrix(solve(H,g)) }
    
         ntry = 0
         
         coefs1 = coefs0 
+        
+        if(control$trace >0){ print(c(f0,mean(abs(DC)),0)) }
 
         while( (f1 >= f0) & (t(DC)%*%DC > control$reltol) & (ntry < control$maxtry) ){
             
@@ -142,7 +154,7 @@ SplineEst.NewtRaph = function(coefs,times,data,lik,proc,pars,
         coefs0 = coefs1
         
         g = SplineCoefsDC(coefs0,times,data,lik,proc,pars)
-        H = SplineCoefsDC2(coefs0,times,data,lik,proc,pars)    
+        H = SplineCoefsDC2sparse(coefs0,times,data,lik,proc,pars)    
 
         gradnorm1 = mean(abs(DC))
         fundif = (f0-f1)/abs(f0)
@@ -222,7 +234,7 @@ SplineCoefsDP = function(coefs,times,data,lik,proc,pars,sgn=1)  # Inner gradient
 
 ###############################################################
 
-SplineCoefsDC2 = function(coefs,times,data,lik,proc,pars,sgn=1) 
+SplineCoefsDC2sparse = function(coefs,times,data,lik,proc,pars,sgn=1) 
 {
   #  Inner Hessian with respect to coefficients
     coefs2 = matrix(coefs,ncol(lik$bvals),length(coefs)/ncol(lik$bvals))
@@ -235,14 +247,21 @@ SplineCoefsDC2 = function(coefs,times,data,lik,proc,pars,sgn=1)
     for(i in 1:dim(d2lik)[2]){
       H[[i]] = list(len=ncol(devals))
         for(j in 1:dim(d2lik)[3]){
-            H[[i]][[j]] = as.matrix(t(lik$bvals)%*%diag(d2lik[,i,j])%*%lik$bvals)
+            H[[i]][[j]] = t(lik$bvals)%*%diag(d2lik[,i,j])%*%lik$bvals
         }
     }
 
     H = blocks2mat(H) 
+
     H = H + proc$d2fdc2(coefs2,proc$bvals,pars,proc$more)
 
-    return( as.matrix(sgn*H) )
+    return(sgn*H)
+}
+
+SplineCoefsDC2 = function(coefs,times,data,lik,proc,pars,sgn=1)
+{
+  result = as.matrix(SplineCoefsDC2sparse(coefs,times,data,lik,proc,pars,sgn))
+  return(result)
 }
 
 ###############################################################

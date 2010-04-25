@@ -9,13 +9,13 @@ Profile.LS(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='nls',
                         control.in,control.out,eps=1e-6,active=NULL,posproc=0,
-                        poslik=0,discrete=0,names=NULL)
+                        poslik=0,discrete=0,names=NULL,sparse=FALSE)
 
 Profile.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
                         fd.obj=NULL,more=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='optim',
                         control.in,control.out,eps=1e-6,active=NULL,
-                        posproc=0,poslik=0,discrete=0,names=NULL)
+                        posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
 }
 \arguments{
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
@@ -80,6 +80,9 @@ on the log scale \code{posproc=1}, this is an alternative to taking the log of t
 \item{discrete}{ Is this a discrete-time or a continuous-time system? If discrete, the derivative is instead
 taken to be the value at the next time point. }
 \item{names}{ The names of the state variables if not given by the column names of \code{coefs}.}
+\item{sparse}{ Should sparse matrices be used for basis values? This option can save memory when 
+\code{ProfileGausNewt} and \code{SplineEstNewtRaph} are called. Otherwise sparse matrices will be converted to 
+full matrices and this can slow the code down.}
 }
 \value{A list with elements
 \item{pars}{Optimized parameters}
@@ -143,8 +146,10 @@ res1 = Profile.LS(make.fhn(),data=FhNdata,times=FhNtimes,pars=spars,coefs=coefs,
 par(mfrow=c(2,1))
 plotfit.fd(FhNdata,FhNtimes,fd(res1$coefs,bbasis))
   
+  
 Covar = Profile.covariance(pars=res1$pars,times=FhNtimes,data=FhNdata,
   coefs=res1$coefs,lik=res1$lik,proc=res1$proc)  
+ 
   
 ####################################################
 ###  An Explicitly Multivariate Normal Formation ### 

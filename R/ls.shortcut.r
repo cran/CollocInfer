@@ -1,14 +1,14 @@
 Smooth.LS <- function(fn, data, times, pars, coefs=NULL, basisvals=NULL,
                        lambda,fd.obj=NULL,more=NULL,weights=NULL,
 	                     quadrature=NULL, in.meth='nlminb', control.in=list(), eps=1e-6,
-                       posproc=0, poslik=0, discrete=0, names=NULL)
+                       posproc=0, poslik=0, discrete=0, names=NULL, sparse=FALSE)
 {
       
     dims = dim(data)
 
     profile.obj = LS.setup(pars, coefs, fn, basisvals, lambda,fd.obj, more,
                             data, weights, times, quadrature, eps=1e-6, posproc,
-                            poslik, discrete, names=names)
+                            poslik, discrete, names=names, sparse=sparse)
 
     lik   = profile.obj$lik
     proc  = profile.obj$proc
@@ -44,13 +44,13 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='nls',
                         control.in=list(),control.out=list(),eps=1e-6,
-                        active=NULL,posproc=0,poslik=0,discrete=0,names=NULL)
+                        active=NULL,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
 {
 #    browser()
     if(is.null(active)){ active = 1:length(pars) }
 
     profile.obj = LS.setup(pars,coefs,fn,basisvals,lambda,fd.obj,more,
-      data,weights,times,quadrature,eps=1e-6,posproc,poslik,discrete,names)
+      data,weights,times,quadrature,eps=1e-6,posproc,poslik,discrete,names,sparse)
 
     dims = dim(data)
 
@@ -64,7 +64,6 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
     if(file.exists('optcoefs.tmp')){file.remove('optcoefs.tmp')}
     if(file.exists('counter.tmp')){file.remove('counter.tmp')}
     
-
     Ires = inneropt(data,times,pars,coefs,lik,proc,in.meth,control.in)
     ncoefs = Ires$coefs
 
@@ -75,7 +74,6 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
     aparamnames = names(apars)
     
     ################  Gauss-Newton optimization  #########################
-
     if(out.meth == "ProfileGN"){
       res=Profile.GausNewt(pars=pars, times=times, data=data, coefs=ncoefs,
 		               lik=lik, proc=proc, in.meth=in.meth,
@@ -139,7 +137,8 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
 
 LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
                      more=NULL, data=NULL, weights=NULL, times=NULL,
-                     quadrature=NULL, eps=1e-6, posproc=0, poslik = 0, discrete=0, names=NULL)
+                     quadrature=NULL, eps=1e-6, posproc=0, poslik = 0, 
+                     discrete=0, names=NULL, sparse=FALSE)
 {
     colnames = names
 
@@ -208,8 +207,12 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
                    ' you must specify the observation times'))
       }
 
-      lik$bvals = Matrix(diag(rep(1,nrep)) %x% 
-                 eval.basis(times,basisvals),sparse=TRUE)
+      if(sparse){
+        lik$bvals = Matrix(diag(rep(1,nrep)) %x% 
+                   eval.basis(times,basisvals),sparse=TRUE)
+      } else{
+        lik$bvals = diag(rep(1,nrep)) %x% eval.basis(times,basisvals)
+      }      
            
       if(is.null(quadrature) | is.null(quadrature$qpts)){
         knots = c(basisvals$rangeval[1],basisvals$params,basisvals$rangeval[2])
@@ -221,20 +224,29 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
 
       proc$bvals = list()
       if(discrete==0){
-        proc$bvals$bvals  = Matrix(diag(rep(1,nrep)) %x% 
-                                   eval.basis(qpts,basisvals,0),sparse=TRUE)
-        proc$bvals$dbvals = Matrix(diag(rep(1,nrep)) %x%
-                                   eval.basis(qpts,basisvals,1),sparse=TRUE)
+        if(sparse){
+          proc$bvals$bvals  = Matrix(diag(rep(1,nrep)) %x% 
+                                     eval.basis(qpts,basisvals,0),sparse=TRUE)
+          proc$bvals$dbvals = Matrix(diag(rep(1,nrep)) %x%
+                                     eval.basis(qpts,basisvals,1),sparse=TRUE)
+        }else{
+          proc$bvals$bvals  = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,0)
+          proc$bvals$dbvals = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,1)        
+        }
         proc$more$weights = matrix(1/length(qpts),length(qpts)*nrep,ncol(coefs))
         #proc$more$weights = 1/length(qpts)
         proc$more$qpts = qpts
       }
-      else
-        {
+      else{
        len = length(times)
        basis = eval.basis(times,basisvals,0)
-       proc$bvals = list(bvals = Matrix(basis[1:(len-1),], sparse=TRUE),
-                         dbvals= Matrix(basis[2:len,],     sparse=TRUE))
+       if(sparse){
+         proc$bvals = list(bvals = Matrix(basis[1:(len-1),], sparse=TRUE),
+                           dbvals= Matrix(basis[2:len,],     sparse=TRUE))
+       } else{
+         proc$bvals = list(bvals = basis[1:(len-1),],
+                           dbvals= basis[2:len,])       
+       }
        proc$more$weights = matrix(1/(len-1),(len-1)*nrep,ncol(coefs))
        #proc$more$weights = 1/(len-1)
        proc$more$qpts = times[1:(len-1)]
@@ -246,21 +258,34 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
                                             # is not a basis object
       if(discrete & (is.matrix(basisvals) | is.null(basisvals))){
         if(is.null(basisvals)){ basisvals = Diagonal(nrow(coefs)) }
-        lik$bvals = basisvals
-        proc$bvals = list(bvals  = basisvals[1:(nrow(basisvals)-1),],
-                          dbvals = basisvals[2:nrow(basisvals),])
+        if(sparse){
+          lik$bvals = Matrix(diag(rep(1,nrep)) %x%basisvals,sparse=TRUE) 
+          proc$bvals = list(bvals  = Matrix(diag(rep(1,nrep)) %x% basisvals[1:(nrow(basisvals)-1),],sparse=TRUE),
+                            dbvals = Matrix(diag(rep(1,nrep)) %x% basisvals[2:nrow(basisvals),],sparse=TRUE))        
+        }else{
+          lik$bvals = diag(rep(1,nrep)) %x%basisvals  
+          proc$bvals = list(bvals  = diag(rep(1,nrep)) %x% basisvals[1:(nrow(basisvals)-1),],
+                            dbvals =diag(rep(1,nrep)) %x% basisvals[2:nrow(basisvals),])
+        }
         proc$more$weights = matrix(1/(nrow(basisvals)-1),
                                    nrow(basisvals)-1,ncol(coefs))
         #proc$more$weights = 1/(nrow(basisvals)-1)
         proc$more$qpts = times[1:(length(times)-1)]
       }                                    
-      else{                                      
-        lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals$bvals.obs,sparse=TRUE)
-  
-        proc$bvals =  list(bvals=Matrix(diag(rep(1,nrep)) %x% 
-                                        basisvals$bvals,sparse=TRUE),
-                          dbvals=Matrix(diag(rep(1,nrep)) %x%
-                                        basisvals$dbvals,sparse=TRUE))
+      else{     
+        if(sparse){                                 
+          lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals$bvals.obs,sparse=TRUE)
+    
+          proc$bvals =  list(bvals=Matrix(diag(rep(1,nrep)) %x% 
+                                          basisvals$bvals,sparse=TRUE),
+                            dbvals=Matrix(diag(rep(1,nrep)) %x%
+                                          basisvals$dbvals,sparse=TRUE))
+        } else{
+          lik$bvals = diag(rep(1,nrep))%x%basisvals$bvals.obs
+    
+          proc$bvals =  list(bvals=diag(rep(1,nrep)) %x% basisvals$bvals,
+                            dbvals= diag(rep(1,nrep)) %x%basisvals$dbvals)        
+        }
         proc$more$qpts = rep(basisvals$qpts,nrep)
         
         if(!is.null(basisvals$qwts))
@@ -297,7 +322,6 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
 
  #   if(length(lambda)==1){ lambda = as.matrix(rep(lambda,ncol(coefs))) }
 
-#    print(length(proc$more$weights))
     if(length(lambda) > 1){ proc$more$weights = proc$more$weights%*%diag(lambda) }
     else{ proc$more$weights = as.numeric(lambda)*proc$more$weights }
 
