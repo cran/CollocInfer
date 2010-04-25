@@ -36,7 +36,11 @@ stepsize \code{eps}. Alternatively, a list can be supplied with elements:
 }}
 These functions take the same arguments as \code{fn} and should output multidimensional arrays with
 the dimensions ordered according to time, state, deriv1, deriv2; here derivatives with respect to \code{x}
-always precede derivatives with respect to \code{p}. }
+always precede derivatives with respect to \code{p}. 
+
+\code{fn} can also be given as a \code{pomp} object (see the \code{pomp} package), in which case it is 
+interfaced to \code{CollocInfer} through \code{pomp.skeleton} using a finite differencing. 
+}
 \item{basisvals}{Values of the collocation basis to be used. This can either be a basis object from the \code{fda} package,
 or a list elements:
 \itemize{

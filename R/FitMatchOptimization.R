@@ -58,6 +58,10 @@ FitMatchOpt <- function(coefs,which,pars,proc,meth='nlminb',control=list())
 
         ncoefs = matrix(res$argument,length(which),length(res$estimate)/length(which))
     }
+    else{
+      stop('Unknown optimizer specified')
+    }
+    
     coefs[,which] = ncoefs
 
     return(list(coefs=coefs,res=res))

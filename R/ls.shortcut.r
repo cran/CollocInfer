@@ -187,6 +187,12 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
       procmore$more$fn = fn
       procmore$more$more = more
       procmore$more$eps = eps
+    }          
+    else if(inherits(fn,'pomp')){
+      procmore = make.findif.ode()
+      procmore$more$fn = pomp.skeleton
+      procmore$more$eps = eps
+      procmore$more$more =  list(pomp.obj = fn)
     }
     else{
       stop('fn must be either a list of functions or a function')

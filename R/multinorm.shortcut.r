@@ -161,7 +161,13 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       proc$more$more$f.more$fn = fn
       proc$more$more$more = more
     }
-    else{
+    else if(inherits(fn,'pomp')){
+      proc$more$more = c(make.findif.ode(),make.cvar())
+      proc$more$more$f.more$fn = pomp.skeleton
+      proc$more$more$f.more$eps = eps
+      proc$more$more$f.more$more =  list(pomp.obj = fn)
+    }
+    else{    
       stop('fn must be either a list of functions or a function')
     }
 

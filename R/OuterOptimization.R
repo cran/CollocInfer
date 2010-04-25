@@ -181,7 +181,7 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
       resid = res$m$resid()
     }
     else {
-      stop("Unrecognizable method.")
+      stop("Unrecognized optimization method.")
     }
      
      if(file.exists('curcoefs.tmp')){

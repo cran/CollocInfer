@@ -55,7 +55,9 @@ ParsMatchOpt <- function(pars,coefs,proc,active=1:length(pars),meth='nlminb',con
           coefs=coefs,proc=proc,active=active,allpars=pars)
         npars = res$argument
      }
-    
+    else{
+      stop('Unknown optimizer specified')
+    }    
     
     pars[active] = npars
 

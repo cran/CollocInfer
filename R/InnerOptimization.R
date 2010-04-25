@@ -94,6 +94,9 @@ inneropt <- function(data,times,pars,coefs,lik,proc,in.meth='nlminb',control.in=
     
         ncoefs = matrix(res$argument,dim(coefs))
     }
+    else{
+      stop('Unknown optimizer specified')
+    }
 
     if(!is.null(proc$more$names)){ colnames(ncoefs) = proc$more$names }
   
