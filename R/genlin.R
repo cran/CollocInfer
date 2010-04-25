@@ -13,6 +13,8 @@ genlin$fun.ode <- function(t,y,p,more)
 
     pmat[more$sub[,1:2,drop=F]] = pmat[more$sub[,1:2,drop=F],drop=F] + p[more$sub[,3,drop=F]]
 
+    print(pmat)
+
     r = pmat%*%y
 
     if(!is$null(more$force)){

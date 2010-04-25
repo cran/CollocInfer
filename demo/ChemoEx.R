@@ -53,7 +53,7 @@ mids = c(min(knots),(knots[1:(length(knots)-1)] + 0.25),max(knots))
 
 bvals.obs = eval.basis(ChemoTime,bbasis)
 
-bvals.proc = list(bvals = eval.basis(mids,bbasis),
+bvals.proc = list(bvals  = eval.basis(mids,bbasis),
                   dbvals = eval.basis(mids,bbasis,1));
 
 
@@ -61,16 +61,18 @@ bvals.proc = list(bvals = eval.basis(mids,bbasis),
 # of the state here for numerical stability. In general it is better to do 
 # finite differencing AFTER the log transformation rather than before it. 
 
-proc = make.SSEproc()                    # Sum of squared errors
+proc       = make.SSEproc()              # Sum of squared errors
 proc$bvals = bvals.proc                  # Basis values
-proc$more = make.findif.ode()            # Finite differencing
-proc$more$more = list(fn=make.logtrans()$fn,eps=1e-8) # Log transform
-proc$more$more$more = list(fn=chemo.fun) # ODE function
-proc$more$qpts = mids                    # Quadrature points
-proc$more$weights = rep(1,5)*lambda      # Quadrature weights (including lambda)
-proc$more$names = ChemoVarnames          # Variable names
+
+proc$more          = make.findif.ode()   # Finite differencing
+proc$more$qpts     = mids                # Quadrature points
+proc$more$weights  = rep(1,5)*lambda     # Quadrature weights (including lambda)
+proc$more$names    = ChemoVarnames       # Variable names
 proc$more$parnames = ChemoParnames       # Parameter names
 
+proc$more$more = list(fn=make.logtrans()$fn,eps=1e-8) # Log transform
+
+proc$more$more$more = list(fn=chemo.fun) # ODE function
 
 # For the lik object we need to both represent the linear combination transform
 # and we need to model the observation process. 
@@ -79,7 +81,7 @@ proc$more$parnames = ChemoParnames       # Parameter names
 # functions. These produce a linear combination of the the states 
 # (they can be used in proc objects for linear systems, too).  
 
-temp.lik = make.SSElik()
+temp.lik      = make.SSElik()
 temp.lik$more = make.genlin()
 
 # Genlin requires a more object with two elements. The 'mat' element
@@ -91,41 +93,51 @@ temp.lik$more = make.genlin()
 # of the parameter vector (3) to add to it. 
 
 temp.lik$more$more = list(mat=matrix(0,2,5,byrow=TRUE), 
-  sub = matrix(c(1,2,1,1,3,1,2,4,2,2,5,2),4,3,byrow=TRUE))
+                          sub = matrix(c(1,2,1,1,3,1,2,4,2,2,5,2),4,3,byrow=TRUE))
 temp.lik$more$weights = c(100,1)
 
 # Finally, we tell CollocInfer that the trajectories are represented on
 # the log scale and must be exponentiated before comparing them to the data. 
 
-lik = make.logstate.lik()
-lik$more = temp.lik
+lik       = make.logstate.lik()
+lik$more  = temp.lik
 lik$bvals = bvals.obs
-
 
 # Now lets try running this
 
 # Because we don't have direct observations of any state, we'll use a starting 
 # smooth obtained from generating some ODE solutions
 
-y0 = log(c(2,0.1,0.4,0.2,0.1))
+y0 = log(c(2,0.1,0.4,0.2,0.1))  
 names(y0) = ChemoVarnames
 
 odetraj = lsoda(y0,ChemoTime,func=chemo.ode,logpars)
 
-DEfd = smooth.basis(ChemoTime,odetraj[,2:6],fdPar(bbasis,int2Lfd(2),1e-6))
-C = DEfd$fd$coef
-
+DEfd   = smooth.basis(ChemoTime,odetraj[,2:6],fdPar(bbasis,int2Lfd(2),1e-6))
+coefs0 = DEfd$fd$coef
 
 # Now, with parameters fixed, we'll estiamte coefficients. 
 
-res = inneropt(coefs=C,pars=logpars,times=ChemoTime,data=ChemoData,
-  lik=lik,proc=proc,in.meth='optim')
+control.in = list()
+control.in$trace = 2
+control.in$maxit = 1000
+control.in$reltol = 1e-6
+
+grad = SplineCoefsDC(coefs=coefs0, times=ChemoTime, data=ChemoData, pars=logpars, 
+                  lik=lik, proc=proc)
+grad = matrix(grad,203,5)
+
+par(mfrow=c(1,1),ask=TRUE)
+for (i in 1:5) plot(1:203,grad[,i],type="l")
+
+res = inneropt(coefs=coefs0, pars=logpars, times=ChemoTime, data=ChemoData,
+               lik=lik, proc=proc, in.meth='optim', control.in=control.in)
 
 # We'll for the trajectory and also the appropriate sum of exponentiated
 # states to compare to the data. 
 
-C = matrix(res$coefs,dim(C))
-traj = lik$bvals%*%C
+coefs1  = matrix(res$coefs,dim(coefs0))
+traj    = lik$bvals %*% coefs1
 obstraj = lik$more$more$fn(ChemoTime,exp(traj),logpars,lik$more$more$more)
 
 # Plot these against the data

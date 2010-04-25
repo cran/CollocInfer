@@ -10,7 +10,7 @@ Profile.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c
                         fd.obj=NULL,more=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='optim',
                         control.in=list(),control.out=list(),eps=1e-6,
-                        active=NULL,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
+                        active=NULL,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
 {
 
     dims = dim(data)
@@ -59,7 +59,7 @@ Profile.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c
 Smooth.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
                         fd.obj=NULL,more=NULL,quadrature=NULL,
                         in.meth='nlminb',control.in=list(),
-                        eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
+                        eps=1e-6,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
 {
 
     dims = dim(data)
@@ -95,8 +95,8 @@ Smooth.multinorm <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(
 ################################################################################
 
 multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.obj=NULL,
-  more=NULL,data=NULL,times=NULL,quadrature=NULL,eps=1e-6,posproc=0,poslik=0,
-  discrete=0,names=NULL,sparse=FALSE)
+  more=NULL,data=NULL,times=NULL,quadrature=NULL,eps=1e-6,posproc=FALSE,poslik=FALSE,
+  discrete=FALSE,names=NULL,sparse=FALSE)
 {
 
     if(!is.null(data) & length(dim(data))>2){
@@ -118,7 +118,7 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
 
     lik = make.multinorm()
     
-    if(poslik==0){ lik$more = c(make.id(),make.cvar())}
+    if(!poslik){ lik$more = c(make.id(),make.cvar())}
     else { lik$more = c(make.exp(),make.cvar())}
     
     lik$more$f.more = NULL
@@ -136,13 +136,13 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       colnames = colnames(coefs)
     }
 
-    if(posproc==0){
-    	if(discrete==0) proc = make.Cproc()
+    if(!posproc){
+    	if(!discrete) proc = make.Cproc()
     	else 
     	 proc = make.Dproc()
     	}
     else{
-    	if(discrete==0) proc = make.exp.Cproc()
+    	if(!discrete) proc = make.exp.Cproc()
     	else 
     	 proc = make.exp.Dproc()
     }
@@ -181,15 +181,15 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       }
 
       if(sparse){
-        lik$bvals = Matrix(diag(rep(1,nrep)) %x% 
-                   eval.basis(times,basisvals),sparse=TRUE)
+        lik$bvals = spam(diag(rep(1,nrep)) %x% 
+                   eval.basis(times,basisvals))
       } else{
         lik$bvals = diag(rep(1,nrep)) %x% eval.basis(times,basisvals)
       }      
              
       if(is.null(quadrature) | is.null(quadrature$qpts)){
         knots = c(basisvals$rangeval[1],basisvals$params,basisvals$rangeval[2])
-        qpts = knots[-length(knots)] + diff(knots)/2
+        qpts = c(knots[1],knots[-length(knots)] + diff(knots)/2,knots[length(knots)])
         weights = rep(1,length(qpts))
       
       }
@@ -201,12 +201,12 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
 
       proc$bvals = list()
      
-      if(discrete==0){
+      if(!discrete){
         if(sparse){
-          proc$bvals$bvals  = Matrix(diag(rep(1,nrep)) %x% 
-                                     eval.basis(qpts,basisvals,0),sparse=TRUE)
-          proc$bvals$dbvals = Matrix(diag(rep(1,nrep)) %x%
-                                     eval.basis(qpts,basisvals,1),sparse=TRUE)
+          proc$bvals$bvals  = spam(diag(rep(1,nrep)) %x% 
+                                     eval.basis(qpts,basisvals,0))
+          proc$bvals$dbvals = spam(diag(rep(1,nrep)) %x%
+                                     eval.basis(qpts,basisvals,1))
         }else{
           proc$bvals$bvals  = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,0)
           proc$bvals$dbvals = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,1)        
@@ -217,8 +217,8 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       else{
        len = length(times)
        if(sparse){
-         proc$bvals = list(bvals = Matrix(basis[1:(len-1),], sparse=TRUE),
-                           dbvals= Matrix(basis[2:len,],     sparse=TRUE))
+         proc$bvals = list(bvals = spam(basis[1:(len-1),]),
+                           dbvals= spam(basis[2:len,]))
        } else{
          proc$bvals = list(bvals = basis[1:(len-1),],
                            dbvals= basis[2:len,])       
@@ -230,8 +230,8 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       if(discrete & (is.matrix(basisvals) | is.null(basisvals))){
         if(is.null(basisvals)){ basisvals = Diagonal(nrow(coefs)) }
         if(sparse){
-          lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals,sparse=TRUE)
-          proc$bvals = Matrix(diag(rep(1,nrep))%x%basisvals,sparse=TRUE)
+          lik$bvals = spam(diag(rep(1,nrep))%x%basisvals)
+          proc$bvals = spam(diag(rep(1,nrep))%x%basisvals)
         }else{
           lik$bvals = diag(rep(1,nrep))%x%basisvals
           proc$bvals = diag(rep(1,nrep))%x%basisvals      
@@ -240,12 +240,12 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       }                                    
       else{                                  
         if(sparse){                                 
-          lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals$bvals.obs,sparse=TRUE)
+          lik$bvals = spam(diag(rep(1,nrep))%x%basisvals$bvals.obs)
     
-          proc$bvals =  list(bvals=Matrix(diag(rep(1,nrep)) %x% 
-                                          basisvals$bvals,sparse=TRUE),
-                            dbvals=Matrix(diag(rep(1,nrep)) %x%
-                                          basisvals$dbvals,sparse=TRUE))
+          proc$bvals =  list(bvals=spam(diag(rep(1,nrep)) %x% 
+                                          basisvals$bvals),
+                            dbvals=spam(diag(rep(1,nrep)) %x%
+                                          basisvals$dbvals))
         } else{
           lik$bvals = diag(rep(1,nrep))%x%basisvals$bvals.obs
     

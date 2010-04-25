@@ -39,14 +39,3 @@ forward.prediction.error = function(times,data,coefs,lik,proc,pars,whichtimes=NU
 }
 
 
-oderhs = function(t,r,parms)
-{
-  proc = parms$proc
-  pars = parms$pars
-  r = matrix(r,1,length(r))
-  colnames(r) = proc$more$names
-  
-  y = as.vector(proc$more$fn(t,r,pars,proc$more$more))
-  
-  return(list(y))
-}

@@ -204,14 +204,14 @@ SRK2fns = function()
     SRK2indeces = function(m)
     {
       if( m%%2 == 0){ error('Number of quadrature points must be odd.') }
-      I = cbind( seq(1,m-3,2),seq(1,m-3,2)+2, seq(1,m-3,2)+1)
+      I = cbind( seq(1,m-2,2),seq(1,m-2,2)+2, seq(1,m-2,2)+1)
       return(I)
     }
 
     #####################################
 
     SRK2common = function(coefs,bvals,pars,more){
-       devals = as.matrix(bvals$bvals%*%coefs)
+       devals = as.matrix(bvals$bvals%*%coefs)  
        colnames(devals) = more$names
        if(is.null(bvals$I)){ bvals$I = SRK2indeces(nrow(devals)) }
        

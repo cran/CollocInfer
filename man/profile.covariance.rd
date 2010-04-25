@@ -4,7 +4,7 @@
 \description{ Newey-West estimate of covariance of parameter estimates from profiling. }
 \usage{
 Profile.covariance(pars,active=NULL,times,data,coefs,lik,proc,
-          in.meth='nlminb',control.in=NULL,eps=1e-6)
+          in.meth='nlminb',control.in=NULL,eps=1e-6,GN=FALSE)
 }
 \arguments{
 \item{pars}{ Initial values of parameters to be estimated processes. }
@@ -17,6 +17,8 @@ Profile.covariance(pars,active=NULL,times,data,coefs,lik,proc,
 \item{in.meth}{ Inner optimization function currently one of 'nlminb', 'MaxNR', 'optim' or 'house'. The last calls \code{SplineEst.NewtRaph}. This is fast but has poor convergence.  }
 \item{control.in}{ Control object for inner optimization functions. }
 \item{eps}{ Step-size for finite difference estimate of second derivatives.  }
+\item{GN}{ Indicator of whether a Gauss-Newton approximation for the Hessian should be employed. Only valid for
+least-squares methods. }
 }
 \value{Returns a Newey-West estimate of the covariance matrix of the parameter estimates. }
 \details{Currently assumes a lag-5 auto-correlation among observation vectors. }

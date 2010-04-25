@@ -50,16 +50,16 @@ lambda = 10000
 ### SSE for discrete process####
 
 Ires1	= Smooth.LS(make.Henon(),data=Y,times=t,pars=hpars2,coefs,basisvals=NULL,
-  lambda=lambda,in.meth='nlminb',control.in=control.in,pos=0,discrete=1)
+  lambda=lambda,in.meth='nlminb',control.in=control.in,pos=FALSE,discrete=TRUE)
   
 Ores1 = Profile.LS(make.Henon(),data=Y,t,pars=hpars2,coefs,basisvals=NULL,
   lambda=lambda,in.meth='nlminb',out.meth='nls',control.in=control.in,
-  control.out=control.out,pos=0,discrete=1)
+  control.out=control.out,pos=FALSE,discrete=TRUE)
 
 ### ProfileErr with SSEproc ####
 
 profile.obj = LS.setup(pars=hpars2,coefs=coefs,fn=make.Henon(),basisvals=NULL,
-  lambda=lambda,times=t,discrete=1)
+  lambda=lambda,times=t,discrete=TRUE)
 lik = profile.obj$lik
 proc= profile.obj$proc
    
@@ -74,10 +74,10 @@ Ores2 = outeropt(data=Y,times=t,pars=hpars2,coefs=coefs,lik=lik,proc=proc,
 var = c(1,0.01)
 
 Ires3 = Smooth.multinorm(make.Henon(),data=Y,t,pars=hpars2,coefs,basisvals=NULL,
-  var=var,in.meth='nlminb',control.in=control.in,pos=0,discrete=1)
+  var=var,in.meth='nlminb',control.in=control.in,pos=FALSE,discrete=TRUE)
 
 Ores3 = Profile.multinorm(fn=make.Henon(),data=Y,times=t,pars=hpars2,coefs=coefs,
   basisvals=NULL,var=var,fd.obj=NULL,more=NULL,quadrature=NULL,in.meth='nlminb',
   out.meth='BFGS',control.in=control.in,control.out=control.out,eps=1e-6,
-  active=NULL,pos=0,discrete=1)
+  active=NULL,pos=FALSE,discrete=TRUE)
 

@@ -1,7 +1,7 @@
 Smooth.LS <- function(fn, data, times, pars, coefs=NULL, basisvals=NULL,
                        lambda,fd.obj=NULL,more=NULL,weights=NULL,
 	                     quadrature=NULL, in.meth='nlminb', control.in=list(), eps=1e-6,
-                       posproc=0, poslik=0, discrete=0, names=NULL, sparse=FALSE)
+                       posproc=FALSE, poslik=FALSE, discrete=FALSE, names=NULL, sparse=FALSE)
 {
       
     dims = dim(data)
@@ -44,13 +44,14 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='nls',
                         control.in=list(),control.out=list(),eps=1e-6,
-                        active=NULL,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
+                        active=NULL,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
 {
 #    browser()
     if(is.null(active)){ active = 1:length(pars) }
 
     profile.obj = LS.setup(pars,coefs,fn,basisvals,lambda,fd.obj,more,
-      data,weights,times,quadrature,eps=1e-6,posproc,poslik,discrete,names,sparse)
+                           data,weights,times,quadrature,eps=1e-6,
+                           posproc,poslik,discrete,names,sparse)
 
     dims = dim(data)
 
@@ -137,8 +138,8 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
 
 LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
                      more=NULL, data=NULL, weights=NULL, times=NULL,
-                     quadrature=NULL, eps=1e-6, posproc=0, poslik = 0, 
-                     discrete=0, names=NULL, sparse=FALSE)
+                     quadrature=NULL, eps=1e-6, posproc=FALSE, poslik = FALSE, 
+                     discrete=FALSE, names=NULL, sparse=FALSE)
 {
     colnames = names
 
@@ -153,31 +154,49 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
       }
     }
         
-    lik = make.SSElik()
-    
-    if(poslik==0) 
-       lik$more = make.id()
-    else
-      lik$more = make.exp()
-    
-    
     if(length(dim(coefs))>2){
       if(is.null(colnames)){
         colnames = dimnames(coefs)[[3]]
       }
       nrep = dim(coefs)[2]
       coefs = matrix(coefs,dim(coefs)[1]*dim(coefs)[2],dim(coefs)[3])
-    }
-    else{
+    } else{
       nrep = 1
       if(is.null(colnames)){
         colnames = colnames(coefs)
       }
     }
 
+    #  --------------------------------------------------------------------
+    #  Define list object LIK containing handles for functions for 
+    #  evaluating the values of the error sum of squares for the data and 
+    #  their derivatives.
+    #  Names of the members of the struct object LIK are:
+    #  'fn'      'dfdx'    'dfdy'    'dfdp'    'd2fdx2'  'd2fdxdy'
+    #  'd2fdy2'  'd2fdxdp' 'd2fdydp' 'more'    'bvals'
+    #  --------------------------------------------------------------------
+
+    lik = make.SSElik()
+    
+    #  Add the member MORE to LIK that defines the transformation of the 
+    #  process to fit the data.  POS == 0 means no transformation, otherwise an
+    #  exponential transformation is applied to provide a positive fit.
+
+    if(!poslik) 
+       lik$more = make.id()
+    else
+      lik$more = make.exp()
+        
+    #  --------------------------------------------------------------------
+    #  Define list object PROC containing functions for evaluating the
+    #  penalty term and its derivatives
+    #  --------------------------------------------------------------------
 
     proc = make.SSEproc()
     
+    #  Define a list object PROCMORE containing handles to code for
+    #  evalution of right side of differential equation
+
     if(is.list(fn)){
       procmore = fn
       procmore$more = more
@@ -198,9 +217,17 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
       stop('fn must be either a list of functions or a function')
     }
     
-    if(posproc==0) proc$more = procmore
-    else { proc$more = make.logtrans()
-           proc$more$more = procmore}
+    #  Add  member MORE to PROC containing:
+    #    PROCMORE if variables are not constrained to have positive values
+    #    the list object returned by function MAKE_LOGTRANS with
+    #    an additional member containing PROCMORE
+
+    if(!posproc) { 
+      proc$more = procmore
+    } else { 
+      proc$more = make.logtrans()
+      proc$more$more = procmore
+    }
            
     
     proc$more$names = colnames
@@ -214,27 +241,27 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
       }
 
       if(sparse){
-        lik$bvals = Matrix(diag(rep(1,nrep)) %x% 
-                   eval.basis(times,basisvals),sparse=TRUE)
+        lik$bvals = spam(diag(rep(1,nrep)) %x% 
+                   eval.basis(times,basisvals))
       } else{
         lik$bvals = diag(rep(1,nrep)) %x% eval.basis(times,basisvals)
       }      
            
       if(is.null(quadrature) | is.null(quadrature$qpts)){
         knots = c(basisvals$rangeval[1],basisvals$params,basisvals$rangeval[2])
-        qpts = knots[-length(knots)] + diff(knots)/2
+        qpts = c(knots[1],knots[-length(knots)] + diff(knots)/2,knots[length(knots)])
       }
       else{
         qpts = quadrature$qpts
       }
 
       proc$bvals = list()
-      if(discrete==0){
+      if(!discrete){
         if(sparse){
-          proc$bvals$bvals  = Matrix(diag(rep(1,nrep)) %x% 
-                                     eval.basis(qpts,basisvals,0),sparse=TRUE)
-          proc$bvals$dbvals = Matrix(diag(rep(1,nrep)) %x%
-                                     eval.basis(qpts,basisvals,1),sparse=TRUE)
+          proc$bvals$bvals  = spam(diag(rep(1,nrep)) %x% 
+                                     eval.basis(qpts,basisvals,0))
+          proc$bvals$dbvals = spam(diag(rep(1,nrep)) %x%
+                                     eval.basis(qpts,basisvals,1))
         }else{
           proc$bvals$bvals  = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,0)
           proc$bvals$dbvals = diag(rep(1,nrep)) %x% eval.basis(qpts,basisvals,1)        
@@ -247,8 +274,8 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
        len = length(times)
        basis = eval.basis(times,basisvals,0)
        if(sparse){
-         proc$bvals = list(bvals = Matrix(basis[1:(len-1),], sparse=TRUE),
-                           dbvals= Matrix(basis[2:len,],     sparse=TRUE))
+         proc$bvals = list(bvals = spam(basis[1:(len-1),]),
+                           dbvals= spam(basis[2:len,]))
        } else{
          proc$bvals = list(bvals = basis[1:(len-1),],
                            dbvals= basis[2:len,])       
@@ -265,9 +292,9 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
       if(discrete & (is.matrix(basisvals) | is.null(basisvals))){
         if(is.null(basisvals)){ basisvals = Diagonal(nrow(coefs)) }
         if(sparse){
-          lik$bvals = Matrix(diag(rep(1,nrep)) %x%basisvals,sparse=TRUE) 
-          proc$bvals = list(bvals  = Matrix(diag(rep(1,nrep)) %x% basisvals[1:(nrow(basisvals)-1),],sparse=TRUE),
-                            dbvals = Matrix(diag(rep(1,nrep)) %x% basisvals[2:nrow(basisvals),],sparse=TRUE))        
+          lik$bvals = spam(diag(rep(1,nrep)) %x%basisvals) 
+          proc$bvals = list(bvals  = spam(diag(rep(1,nrep)) %x% basisvals[1:(nrow(basisvals)-1),]),
+                            dbvals = spam(diag(rep(1,nrep)) %x% basisvals[2:nrow(basisvals),]))        
         }else{
           lik$bvals = diag(rep(1,nrep)) %x%basisvals  
           proc$bvals = list(bvals  = diag(rep(1,nrep)) %x% basisvals[1:(nrow(basisvals)-1),],
@@ -280,12 +307,12 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
       }                                    
       else{     
         if(sparse){                                 
-          lik$bvals = Matrix(diag(rep(1,nrep))%x%basisvals$bvals.obs,sparse=TRUE)
+          lik$bvals = spam(diag(rep(1,nrep))%x%basisvals$bvals.obs)
     
-          proc$bvals =  list(bvals=Matrix(diag(rep(1,nrep)) %x% 
-                                          basisvals$bvals,sparse=TRUE),
-                            dbvals=Matrix(diag(rep(1,nrep)) %x%
-                                          basisvals$dbvals,sparse=TRUE))
+          proc$bvals =  list(bvals=spam(diag(rep(1,nrep)) %x% 
+                                          basisvals$bvals),
+                            dbvals=spam(diag(rep(1,nrep)) %x%
+                                          basisvals$dbvals))
         } else{
           lik$bvals = diag(rep(1,nrep))%x%basisvals$bvals.obs
     

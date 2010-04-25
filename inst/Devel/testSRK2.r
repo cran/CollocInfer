@@ -4,13 +4,23 @@
 srkproc = make.SRK2proc()
 
 srktimes = seq(0,20,len=81)
+#srktimes = seq(0,20,len=801)
 #coefs = eval.fd(srktimes, DEfd)
-coefs = DEfd$coefs
+#coefs = DEfd$coefs
 more = proc$more
-#bvals = list(bvals=diag(rep(1,81)),I=SRK2fns()$SRK2indeces(81))
-bvals = list(bvals=cbind( rbind(diag(40)%x%matrix(c(1,0),2,1),rep(0,40)), c(rep(0,80),1),c(rep(0,80),1)),I=SRK2fns()$SRK2indeces(81))
+bvals = list(bvals=diag(rep(1,81)),I=SRK2fns()$SRK2indeces(81))
+#bvals = list(bvals=diag(rep(1,801)),I=SRK2fns()$SRK2indeces(801))
+#bvals = list(bvals=cbind( rbind(diag(40)%x%matrix(c(1,0),2,1),rep(0,40)), c(rep(0,80),1),c(rep(0,80),1)),I=SRK2fns()$SRK2indeces(81))
+coefs=matrix(0,81,2)
+#coefs=matrix(0,801,2)
+coefs[c(bvals$I[,1], length(srktimes)),]=FhNdata
+#coefs[c(bvals$I[,1], length(srktimes)),]=data
+coefs[bvals$I[,3],]=(FhNdata[1:40,]+FhNdata[2:41,])/2
+#coefs[bvals$I[,3],]=(data[1:400,]+data[2:401,])/2
 
-more$weights = matrix(1,81,2)
+
+more$weights = matrix(8/3,81,2)
+#more$weights = matrix(8/3,801,2)
 more$qpts = srktimes
 
 srkproc$bvals = bvals
@@ -18,8 +28,9 @@ srkproc$more = more
 
 
 srklik = lik
-#srklik$bvals = (cbind( rbind(diag(40)%x%matrix(c(1,0),2,1),rep(0,40)), c(rep(0,80),1),c(rep(0,80),1)))
-srklik$bvals =  cbind(diag(41),rep(0,41))
+srklik$bvals = t(cbind(rbind(diag(40)%x%matrix(c(1,0),2,1),rep(0,40)),c(rep(0,80),1)))
+#srklik$bvals = t(cbind(rbind(diag(400)%x%matrix(c(1,0),2,1),rep(0,400)),c(rep(0,800),1)))
+#srklik$bvals =  cbind(diag(41),rep(0,41))
 
 # Now try some optimization
 
@@ -28,8 +39,8 @@ npars = pres$pars
 
 # Smoothing can be done more specifically with 'inneropt'
 
-Ires2 = inneropt(FhNdata,times=FhNtimes,npars,coefs,srklik,srkproc)
-
+Ires2 = inneropt(FhNdata,times=FhNtimes,FhNpars,coefs,srklik,srkproc)
+#Ires2 = inneropt(data,times=seq(0,20,len=401),FhNpars,coefs,srklik,srkproc)
 # And we can also do profiling
 
 Ores2 = outeropt(FhNdata,FhNtimes,npars,coefs,srklik,srkproc)
@@ -63,10 +74,10 @@ ed2fdxdp22 = 0*d2fdxdplist$d2fdx22
 for(i in 1:ncol(coefs)){
   for(j in 1:ncol(coefs)){
     for(k in 1:length(pars)){
-     edfdxdp11[,,i,j] = d2fdxdplist$dfdx11[,i,j]*d2fdxdplist$dfdp1[,i,k] 
-     edfdxdp12[,,i,j] = d2fdxdplist$dfdx12[,i,j]*d2fdxdplist$dfdp1[,i,k]
-     edfdxdp21[,,i,j] = d2fdxdplist$dfdx21[,i,j]*d2fdxdplist$dfdp2[,i,k]
-     edfdxdp22[,,i,j] = d2fdxdplist$dfdx22[,i,j]*d2fdxdplist$dfdp2[,i,k]
+     ed2fdxdp11[,,i,j] = d2fdxdplist$dfdx11[,i,j]*d2fdxdplist$dfdp1[,i,k] 
+     ed2fdxdp12[,,i,j] = d2fdxdplist$dfdx12[,i,j]*d2fdxdplist$dfdp1[,i,k]
+     ed2fdxdp21[,,i,j] = d2fdxdplist$dfdx21[,i,j]*d2fdxdplist$dfdp2[,i,k]
+     ed2fdxdp22[,,i,j] = d2fdxdplist$dfdx22[,i,j]*d2fdxdplist$dfdp2[,i,k]
     }
   }
 }

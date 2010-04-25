@@ -11,7 +11,7 @@ Colloc.MCMC = function(times,data,pars,coefs,lik,proc,prior,walk.var,cscale,nste
 
      pr = prior(pars)
     
-    f = SplineCoefsErr(coefs,times,data,lik,proc,pars,sgn=-1)  + pr  # Complete data log posterior
+    f = SplineCoefsErr(coefs,times,data,lik,proc,pars,sgn=-1)  + pr +sum(dnorm(rep(0,length(coefs)),log=TRUE))-200 # Complete data log posterior
 #print(proc$fn(coefs,bvals,pars,more))
 #    H = SplineCoefsDC2(coefs,times,data,lik,proc,pars,sgn=-1)
 #    G = SplineCoefsDCDP(coefs,times,data,lik,proc,pars,sgn=-1)
@@ -61,14 +61,18 @@ Colloc.MCMC = function(times,data,pars,coefs,lik,proc,prior,walk.var,cscale,nste
          
          eta = cscale*ei$vectors%*%diag(1/sqrt(abs(ei$values))*(ei$values>0))%*%eta
        }
-       
-       tf =  SplineCoefsErr(as.vector(tcoefs)+eta,times,data,lik,proc,pars+delta,sgn=-1) + tpr - logq
-#                 print(proc$fn(matrix(as.vector(tcoefs),nrow=ncol(lik$bvals)),bvals,pars,more)) 
-print(c(tf,f,pars+delta, pr, tpr))
+                              
+       tf =  SplineCoefsErr(as.vector(tcoefs)+eta,times,data,lik,proc,pars+delta,sgn=-1) + tpr + logq
+             #  print(proc$fn(matrix(as.vector(tcoefs)+eta,nrow=ncol(lik$bvals)),proc$bvals,pars+delta,proc$more)) 
+             #  devals=as.matrix(lik$bvals%*%matrix(as.vector(tcoefs)+eta,nrow=ncol(lik$bvals)))
+             #  colnames(devals)=proc$more$names
+             #  print(lik$fn(data,times,devals,pars,lik$more))
+print(c(tf,f,pars+delta ,pr, tpr
+))
        if( runif(1) < exp( tf-f)){             # Acceptance probability
           coefs = as.vector(tcoefs)+eta
           pars = pars + delta
-          pr = tpr
+  #        pr = tpr
           
           f = tf
 #          H = SplineCoefsDC2(tcoefs,times,data,lik,proc,pars,sgn=-1)

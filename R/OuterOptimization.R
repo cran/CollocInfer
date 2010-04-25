@@ -100,10 +100,10 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
         if(is.null(control.out$iterlim))    {control.out$iterlim     = 100 }
         if(is.null(control.out$reltol))     {control.out$reltol      = 1e-8}
     
-        res = maxNR(ProfileErr, start=pars[active], allpars=pars, times=times,
+        res = maxNR(ProfileErr1, start=pars[active], allpars=pars, times=times,
                     data=data, coef=coefs, lik=lik, proc=proc,
-    	              in.meth=in.meth, control.in=control.in, active=active,
-                    sgn=-1, grad=ProfileDP, print.level=control.out$print.level,
+    	              in.meth=in.meth, control.in=control.in, sgn=-1, 
+                    active1=active, grad=ProfileDP1, print.level=control.out$print.level,
                     iterlim=control.out$iterlim)
         npar = res$estimate
      }
@@ -124,23 +124,23 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
      
     ##########  method = "trust"  ###########
     
-     else if(out.meth=="trust")
-     {
-        if(is.null(control.out$rinit))   { control.out$rinit    = 1}
-        if(is.null(control.out$rmax))    { control.out$rmax     = 100}
-        if(is.null(control.out$iterlim)) { control.out$itelim   = 100}
-        if(is.null(control.out$parscale)){ 
-            control.out$parscale = abs(pars[active]) 
-        }
-     
-        res = trust(ProfileList, pars[active], 
-                    rinit=control.out$rinit, rmax=control.out$rmax,
-                    parscale=control.out$parscale, iterlim=control.out$iterlim,
-                    allpars=pars,times=times, data=data, coef=coefs, 
-                    lik=lik, proc=proc,
-    	              in.meth=in.meth, control.in=control.in, active=active)
-        npar = res$argument
-     }
+#     else if(out.meth=="trust")
+#     {
+#        if(is.null(control.out$rinit))   { control.out$rinit    = 1}
+#        if(is.null(control.out$rmax))    { control.out$rmax     = 100}
+#        if(is.null(control.out$iterlim)) { control.out$itelim   = 100}
+#        if(is.null(control.out$parscale)){ 
+#            control.out$parscale = abs(pars[active]) 
+#        }
+#     
+#        res = trust(ProfileList, pars[active], 
+#                    rinit=control.out$rinit, rmax=control.out$rmax,
+#                    parscale=control.out$parscale, iterlim=control.out$iterlim,
+#                    allpars=pars,times=times, data=data, coef=coefs, 
+#                    lik=lik, proc=proc,
+#    	              in.meth=in.meth, control.in=control.in, active=active)
+#        npar = res$argument
+#     }
      
     ##########  method = "ProfileGN"  ###########
     
@@ -299,7 +299,6 @@ Profile.GausNewt = function(pars,times,data,coefs,lik,proc,
 ProfileErr.AllPar = function(pars, times, data, coefs, lik, proc,
                              in.meth = "house", control.in=NULL, sgn=1)
 {                                                          
-
 #    coefs = as.vector(coefs)  # First run the inner optimization
     
     if(file.exists('curcoefs.tmp')) {                      
@@ -401,17 +400,20 @@ ProfileDP.AllPar = function(pars, times, data, coefs, lik, proc,
       }      
     }
 
-    coefs = as.matrix(coefs)
+    coefs  = as.matrix(coefs)
     devals = as.matrix(lik$bvals%*%coefs)
     colnames(devals) = proc$more$names
 
 #    coefs = as.vector(coefs)    
 
-    d2Hdc2 = SplineCoefsDC2sparse(coefs,times,data,lik,proc,pars)
+    d2Hdc2  = SplineCoefsDC2sparse(coefs,times,data,lik,proc,pars)
     d2Hdcdp = SplineCoefsDCDP(coefs,times,data,lik,proc,pars)
   
-    if(is.matrix(d2Hdc2)){ dcdp = -ginv(d2Hdc2)%*%d2Hdcdp }
-    else{ dcdp = -as.matrix(solve(d2Hdc2,d2Hdcdp)) }
+    if(is.matrix(d2Hdc2)){ 
+        dcdp = -ginv(d2Hdc2)%*%d2Hdcdp 
+    } else{ 
+        dcdp = -as.matrix(solve(d2Hdc2,d2Hdcdp)) 
+    }
   
    
     if(sumlik){
@@ -422,8 +424,7 @@ ProfileDP.AllPar = function(pars, times, data, coefs, lik, proc,
     
         df = as.vector(sgn*df)
         return(df)
-    }
-    else{
+    } else{
         dlikdx = lik$dfdx(data,times,devals,pars,lik$more)
 
         dlikdp = lik$dfdp(data,times,devals,pars,lik$more)
@@ -444,11 +445,23 @@ ProfileDP.AllPar = function(pars, times, data, coefs, lik, proc,
 ProfileErr = function(pars,allpars,times,data,coefs,lik,proc,in.meth = "house",
         control.in=NULL,sgn=1,active=1:length(allpars))
 {
+#print(allpars)
+#print(active)
     allpars[active] = pars
-    
+#print(allpars)
+
     f = ProfileErr.AllPar(allpars, times, data, coefs, lik, proc,
                           in.meth, control.in,sgn)
     return(f)
+}
+
+
+# The following fixes a conflict that arises when using maxNR. 
+ProfileErr1 =    function(pars,allpars,times,data,coefs,lik,proc,in.meth = "house",
+        control.in=NULL,sgn=1,active1=1:length(allpars))
+{
+  ProfileErr(pars,allpars,times,data,coefs,lik,proc,in.meth = "house",
+        control.in=NULL,sgn=1,active=active1)
 }
 
 ##################################################################
@@ -475,6 +488,14 @@ ProfileDP = function(pars, allpars, times, data, coefs, lik, proc,
     return(g)        
 }
 
+ProfileDP1 = function(pars, allpars, times, data, coefs, lik, proc,
+                     in.meth = "house", control.in=NULL, sgn=1, sumlik=1,
+                     active1=1:length(allpars))
+{                     
+  ProfileDP(pars, allpars, times, data, coefs, lik, proc,
+                     in.meth = "house", control.in=NULL, sgn=1, sumlik=1,
+                     active=active1)                     
+}                    
 ##################################################################
 
 ProfileList = function(pars, allpars, times, data, coefs, lik, proc,
@@ -483,11 +504,15 @@ ProfileList = function(pars, allpars, times, data, coefs, lik, proc,
 {
   check.lik.proc.data.coefs(lik,proc,data,times,coefs)
 
-  value = ProfileErr(pars, allpars, times, data, coefs, lik, proc,
-                     in.meth, control.in, sgn, active)
-  gradient = ProfileDP(pars, allpars, times, data, coefs, lik, proc,
-                       in.meth, control.in, sgn, active)
-  
+  value = ProfileErr(pars=pars, allpars=allpars, times=times, data=data, 
+                       coefs=coefs, lik=lik, proc=proc,
+                       in.meth=in.meth, control.in=control.in, sgn=sgn, 
+                       active=active)
+  gradient = ProfileDP(pars=pars, allpars=allpars, times=times, data=data, 
+                       coefs=coefs, lik=lik, proc=proc,
+                       in.meth=in.meth, control.in=control.in, sgn=sgn, 
+                       active=active)
+
   return(list(value=value,gradient=gradient))
 }
 
@@ -536,15 +561,13 @@ ProfileSSE.AllPar = function(pars, times, data, coefs, lik, proc,
             stop(paste('Variables in curcoefs.tmp do not conform;',
                        'file exists from previous experiments?'))
           }
-        }
-        else{
+        } else {
           altcoefs = coefs
         }
         if(file.exists('counter.tmp')){                       
           counter = read.table('counter.tmp')                 
           niter = counter[nrow(counter),1]
-        }
-        else{
+        } else {
           counter = matrix(c(1,0,pars),1,length(pars)+2)
           niter = 0
         }
@@ -562,7 +585,7 @@ ProfileSSE.AllPar = function(pars, times, data, coefs, lik, proc,
     }
 
     if( !is.null(dcdp) ){
-        tcoefs = coefs + dcdp%*%(pars-oldpars);
+        tcoefs = as.vector(coefs) + dcdp%*%(pars-oldpars);
         f2 = SplineCoefsErr(tcoefs,times,data,lik,proc,pars)
         if(f2 < f1){
           coefs = tcoefs
@@ -602,8 +625,11 @@ ProfileSSE.AllPar = function(pars, times, data, coefs, lik, proc,
     d2Hdc2  = SplineCoefsDC2sparse(ncoefs,times,data,lik,proc,pars)
     d2Hdcdp = SplineCoefsDCDP(ncoefs,times,data,lik,proc,pars)
 
-    if(is.matrix(d2Hdc2)){ dcdp = ginv(d2Hdc2) %*% d2Hdcdp}
-    else{ dcdp = as.matrix(solve(d2Hdc2,d2Hdcdp)) }
+    if(is.matrix(d2Hdc2)){ 
+        dcdp = ginv(d2Hdc2) %*% d2Hdcdp 
+    } else { 
+        dcdp = as.matrix(solve(d2Hdc2,d2Hdcdp)) 
+    }
 
     df = dlikdc%*%dcdp + dlikdp
     df[isnaf,] = 0

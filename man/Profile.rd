@@ -8,14 +8,14 @@ and run generalized profiling.}
 Profile.LS(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='nls',
-                        control.in,control.out,eps=1e-6,active=NULL,posproc=0,
-                        poslik=0,discrete=0,names=NULL,sparse=FALSE)
+                        control.in,control.out,eps=1e-6,active=NULL,posproc=FALSE,
+                        poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
 
 Profile.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
                         fd.obj=NULL,more=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='optim',
                         control.in,control.out,eps=1e-6,active=NULL,
-                        posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
+                        posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
 }
 \arguments{
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
@@ -76,7 +76,7 @@ specifies otherwise), 'nlminb', or 'maxNR'.}
 \item{posproc}{ Should the state vector be constrained to be positive? If this is the case, the state is represented by
 an exponentiated basis expansion in the \code{proc} object. }
 \item{poslik}{ Should the state be exponentiated before being compared to the data? When the state is represented
-on the log scale \code{posproc=1}, this is an alternative to taking the log of the data. }
+on the log scale (\code{posproc=TRUE}), this is an alternative to taking the log of the data. }
 \item{discrete}{ Is this a discrete-time or a continuous-time system? If discrete, the derivative is instead
 taken to be the value at the next time point. }
 \item{names}{ The names of the state variables if not given by the column names of \code{coefs}.}

@@ -2,110 +2,216 @@
 ##       FitzHugh-Nagumo Example       ###
 ##########################################
 
-# Obtain some pre-generated data
+library("CollocInfer")
 
-FhNdata
+#########################################################
+####   Data generation from a solution of the ODE #######
+#########################################################
+
+#  41 time values from 0 to 20 in steps of 0.005
+#  ??  would fewer time points work?
+
+FhNtimes = seq(0,20,0.5)
+
+#  parameter values
+#  ??  what about other parameter values?
+
+pars = c(0.2,0.2,3)
+names(pars) = c('a','b','c')
+
+#  initial values and variable labels
+#  ??  how about other starting values?  
+
+x0 = c(-1,1)
+names(x0) = c('V','R')
+
+#  define the functions using function make.fhn
+
+#  the functions that make.fhn defines:
+#        fn       =  fhn.fun,
+#        fn.ode  = fhn.fun.ode,
+#        dfdx    = fhn.dfdx,
+#        dfdp    = fhn.dfdp,
+#        d2fdx2  = fhn.d2fdx2,
+#        d2fdxdp = fhn.d2fdxdp
+
+FhN = make.fhn()
+
+#  approximate the solution for these values over about three cycles
+
+solution = lsoda(x0,times=FhNtimes,func=FhN$fn.ode,pars)
+
+#  extract the function values at time points (1st col contains times)
+
+y = solution[,2:3]
+
+#  add observational error to the function values to define data
+#  ??  what if the errors were larger?
+
+FhNdata = y + 0.05*array(rnorm(802),dim(y))
+
+# We also remove the 'R' part of the data (ie, assume we did not measure
+# it) and set the corresponding coefficients to zero
+
+V.FhNdata = FhNdata
+V.FhNdata[,2] = NA
 
 # Now we want to set up a basis expansion; this makes use of
 # routines in the fda library
+#  ??  do we need this many knots (41)?
 
 knots  = seq(0,20,0.5)
 norder = 3
 nbasis = length(knots) + norder - 2
 range  = c(0,20)
 
-bbasis = create.bspline.basis(range=range,nbasis=nbasis,
+FhNbasis = create.bspline.basis(range=range,nbasis=nbasis,
 	norder=norder,breaks=knots)
 	
-	
 # We'll start off by creating a smooth of each state variable to get initial
-# values for the parameters.
+# values for the coefficients.  
 
-bfdPar = fdPar(bbasis,lambda=1,int2Lfd(1))
-DEfd = smooth.basis(FhNtimes,FhNdata,bfdPar,fdnames=list(NULL,c('V','R')) )$fd
+fdnames=list(NULL,c('V','R'),NULL) 
+bfdPar = fdPar(FhNbasis,lambda=1,int2Lfd(1))
+DEfd0 = smooth.basis(FhNtimes,FhNdata,bfdPar,fdnames=fdnames)$fd
 
-coefs = DEfd$coefs
-colnames(coefs) = FhNvarnames
+#  plot the solution
 
-#### Option 1: pre-defined set-up for squared error
+par(ask=FALSE)
+plotfit.fd(FhNdata, FhNtimes, DEfd0)
+
+#  extract the coefficients and assign variable names
+
+coefs0 = DEfd0$coefs
+colnames(coefs0) = FhNvarnames
+
+#  In the case of only V being measured, we can get coefficients for R,
+#  so we set these to zero as starting values
+
+V.coefs0 = coefs0
+V.coefs0[,2] = 0
+
+#  Set a value for lambda
+#  ??  What would happen if lambda were small or larger?
 
 lambda = 1000
 
-# First just optimize the coefficients
+# Optimize the coefficients  in coefs0, that is, run the lowest level or
+# inner optimization loop, maximizing function J(c|theta,lambda)
+# ?? why use function nlminb to optimize, what about optim or some other?
 
-Ires1	= Smooth.LS(make.fhn(),FhNdata,FhNtimes,FhNpars,coefs,bbasis,lambda,
-  in.meth='nlminb')
+Ires1	= Smooth.LS(FhN,FhNdata,FhNtimes,FhNpars,coefs0,FhNbasis,lambda,
+                  in.meth='nlminb')
 
 # Let's have a look at this
 
-IDEfd1 = fd(Ires1$coefs,bbasis)
-plot(IDEfd1)
-matplot(FhNtimes,FhNdata,add=TRUE)
+coefs1 = Ires1$coefs
 
+DEfd1 = fd(coefs1,FhNbasis,fdnames)
 
-# Now we can do the profiling
+plotfit.fd(FhNdata, FhNtimes, DEfd1)
 
-Ores1 = Profile.LS(make.fhn(),FhNdata,FhNtimes,FhNpars,coefs=coefs,
-  basisvals=bbasis,lambda=lambda)
+# Now we can do the profiling, running the outer loop to optimize
+#  parameter values.  You may wish to turn off output buffering in the
+#  Misc menu in the command window at this point.
+
+Ores1 = Profile.LS(FhN,FhNdata,FhNtimes,FhNpars,coefs=coefs1,
+                   basisvals=FhNbasis,lambda=lambda)
 
 # And look at the result
 
-ODEfd1 = fd(Ores1$coefs,bbasis)
-plot(ODEfd1)
-matplot(FhNtimes,FhNdata,add=TRUE)
-  
-# If we only coded the FitzHugh Nagumo funciton with no derivatives we would just
-# have make.fhn()$fn, in which case we default to estimating the derivatives by
-# finite differencing
+Ores1$pars
 
-Ires1a	= Smooth.LS(make.fhn()$fn,FhNdata,FhNtimes,FhNpars,coefs,bbasis,lambda,
-  in.meth='nlminb')
+DEfd2 = fd(Ores1$coefs,FhNbasis,fdnames)
+
+plotfit.fd(FhNdata, FhNtimes, DEfd2)
+
+#  Repeat these analyses for the data with only V measured
+
+Ores1.V = Profile.LS(FhN,V.FhNdata,FhNtimes,FhNpars,coefs=V.coefs0,
+                     basisvals=FhNbasis,lambda=lambda)
+
+Ores1.V$pars
+
+DEfd2.V = fd(Ores1.V$coefs,FhNbasis,fdnames)
+
+plot(DEfd2.V['V'])
+points(FhNtimes, V.FhNdata[,1])
+
+plot(DEfd2.V['R'])
+
+# If we only coded the FitzHugh Nagumo function with no derivatives we would just
+# have make.fhn()$fn, in which case we default to estimating the derivatives by
+# finite differencing.  The first argument provides access only to the 
+# function evaluating the right hand side.
+
+Ires1a = Smooth.LS(FhN$fn,FhNdata,FhNtimes,FhNpars,coefs1,FhNbasis,lambda,
+                   in.meth='nlminb')
 
 # Now we can do the profiling
 
-Ores1a = Profile.LS(make.fhn()$fn,FhNdata,FhNtimes,FhNpars,coefs=coefs,
-  basisvals=bbasis,lambda=lambda)
+Ores1a = Profile.LS(FhN$fn,FhNdata,FhNtimes,FhNpars,coefs=coefs1,
+                    basisvals=FhNbasis,lambda=lambda)
   
-  
+Ores1a$pars
+
+DEfd2a = fd(Ores1a$coefs,FhNbasis,fdnames)
+
+plotfit.fd(FhNdata, FhNtimes, DEfd2a)   
   
 #### Option 2:  set-up functions for proc and lik objects and then call
-# optimizers
+# optimizers.  This is a longer form of the analysis, in which the
+#  lik and proc objects defining the first and second terms of 
+#  J(c|theta,lambda) are specified.  This is done in function LS.setup.
+#  Then we can optimize initial parameter values using function
+#  ParsMatchOpt
 
-profile.obj = LS.setup(pars=FhNpars,fn=make.fhn(),lambda=lambda,times=FhNtimes,
-      coefs=coefs,basisvals=bbasis)
-lik = profile.obj$lik
-proc= profile.obj$proc
+profile.obj = LS.setup(pars=FhNpars,fn=FhN,lambda=lambda,times=FhNtimes,
+                       coefs=coefs1,basisvals=FhNbasis)
+lik  = profile.obj$lik
+proc = profile.obj$proc
 
 # Now we can get initial parameter estimates from "gradient matching"
+#  using function ParsMatchOpt
 
-pres = ParsMatchOpt(FhNpars,coefs,proc)
-npars = pres$pars
+Pres  = ParsMatchOpt(FhNpars,coefs1,proc)
+pars1 = Pres$pars
+
+pars1
 
 # Smoothing can be done more specifically with 'inneropt'
 
-Ires2 = inneropt(FhNdata,times=FhNtimes,npars,coefs,lik,proc)
+Ires2 = inneropt(FhNdata,times=FhNtimes,pars1,coefs1,lik,proc)
 
 # And we can also do profiling
 
-Ores2 = outeropt(FhNdata,FhNtimes,npars,coefs,lik,proc)
+Ores2 = outeropt(FhNdata,FhNtimes,pars1,coefs1,lik,proc)
 
-#### Option 3:  set everything up manually
+Ores2$pars
+
+DEfd2 = fd(Ores2$coefs,FhNbasis,fdnames)
+
+plotfit.fd(FhNdata, FhNtimes, DEfd2)
+
+# Option 3:  Set everything up manually.  This is the really long way to
+# do the analysis, in which the error sum of squares fit is defined
+# manually for both terms of J
 
 ## lik object
 
 lik2 = make.SSElik()                      # we are using squared error
-lik2$bvals = eval.basis(FhNtimes,bbasis)  # values of the basis at observation times
+lik2$bvals = eval.basis(FhNtimes,FhNbasis)  # values of the basis at times
 lik2$more = make.id()                     # identity transformation
 lik2$more$weights = c(1,0)                # only use data for V
 
 ## proc object
 
-qpts = knots[1:(length(knots)-1)]+diff(knots)/2  # Collocation points at midpoints
-                                                 # between knots
+qpts = knots[1:(length(knots)-1)]+diff(knots)/2  # Collocation points at 
+                                                 # midpointsbetween knots
 
 proc2 = make.SSEproc()                    # we are using squared error
-proc2$bvals = list(bvals = eval.basis(qpts,bbasis),    # values and derivative of
-                  dbvals = eval.basis(qpts,bbasis,1))  # basis at collocation points
+proc2$bvals = list(bvals = eval.basis(qpts,FhNbasis),    # values and derivative of
+                  dbvals = eval.basis(qpts,FhNbasis,1))  # basis at collocation points
 proc2$more = make.fhn()                   # FitzHugh-Nagumo right hand side
 proc2$more$names = FhNvarnames            # State variable names
 proc2$more$parnames = FhNparnames         # Parameter names
@@ -120,40 +226,40 @@ control.in = list(rel.tol=1e-12,iter.max=1000,eval.max=2000,trace=0)  # Optimiza
 
 out.meth = 'optim'            # Outer Optimization
 control.out = list(trace=6,maxit=100,reltol=1e-8,meth='BFGS') # Optimization control
-                                          
-                                          
-# Now we will also remove the 'R' part of the data (ie, assume we did not measure
-# it) and set the corresponding coefficients to zero
-
-new.FhNdata = FhNdata
-new.FhNdata[,2] = NA
-
-new.coefs = coefs
-new.coefs[,2] = 0
-
+                                                                                   
 # We can now fix the smooth or 'V' and try and choose 'R' to make the differential
 # equation match as well as possible.
 
-fres = FitMatchOpt(coefs=new.coefs,which=2,pars=FhNpars,proc2)
-new.coefs2 = fres$coefs
+Vres0 = FitMatchOpt(coefs=V.coefs0,which=2,pars=FhNpars,proc2)
+V.coefs1 = Vres0$coefs
 
 # And we can call the same inner optimization as above, this time with our
 # own control parameters and method
 
-Ires3 = inneropt(new.FhNdata,FhNtimes,FhNpars,new.coefs2,lik2,proc2,
-  in.meth=in.meth,control.in=control.in)
+Ires3 = inneropt(V.FhNdata,FhNtimes,FhNpars,V.coefs1,lik2,proc2,
+                 in.meth=in.meth,control.in=control.in)
 
 # And we can also do profiling with specified controls
 
-Ores3 = outeropt(new.FhNdata,FhNtimes,FhNpars,coefs=new.coefs2,lik=lik2,proc=proc2,
-  in.meth=in.meth,out.meth=out.meth,control.in=control.in,control.out=control.out)
+Ores3.V = outeropt(V.FhNdata,FhNtimes,FhNpars,coefs=V.coefs1,lik=lik2,proc=proc2,
+                   in.meth=in.meth,out.meth=out.meth,
+                   control.in=control.in,control.out=control.out)
+
+Ores3.V$pars
+
+DEfd3.V = fd(Ores3.V$coefs,FhNbasis,fdnames)
+
+plot(DEfd3.V['V'])
+points(FhNtimes, V.FhNdata[,1])
+
+plot(DEfd3.V['R'])
 
 # We can also use finite differencing to calculate derivatives of the right hand side of the
 # FitzHugh-Nagumo equations, this is defined by modifying the proc object.
 
 proc2a = make.SSEproc()                    # we are using squared error
-proc2a$bvals = list(bvals = eval.basis(qpts,bbasis),    # values and derivative of
-                  dbvals = eval.basis(qpts,bbasis,1))  # basis at collocation points
+proc2a$bvals = list(bvals = eval.basis(qpts,FhNbasis),    # values and derivative of
+                  dbvals = eval.basis(qpts,FhNbasis,1))  # basis at collocation points
 proc2a$more = make.findif.ode()                   # FitzHugh-Nagumo right hand side
 proc2a$more$names = FhNvarnames            # State variable names
 proc2a$more$parnames = FhNparnames         # Parameter names
@@ -165,10 +271,12 @@ proc2a$more$more = list(fn = make.fhn()$fn, eps=1e-6) # Tell findif that the fun
                                                       # difference stepsize
 
 
-Ires3a = inneropt(new.FhNdata,FhNtimes,FhNpars,new.coefs2,lik2,proc2a,
+Ires3a = inneropt(V.FhNdata,FhNtimes,FhNpars,Ores3.V$coefs,lik2,proc2a,
   in.meth=in.meth,control.in=control.in)
 
 # And we can also do profiling with specified controls
 
-Ores3a = outeropt(new.FhNdata,FhNtimes,FhNpars,coefs=new.coefs2,lik=lik2,proc=proc2a,
-  in.meth=in.meth,out.meth=out.meth,control.in=control.in,control.out=control.out)
+Ores3a = outeropt(V.FhNdata, FhNtimes, FhNpars, coefs=Ores3.V$coefs, 
+                  lik=lik2, proc=proc2a, 
+                  in.meth=in.meth, out.meth=out.meth, 
+                  control.in=control.in, control.out=control.out)

@@ -21,13 +21,12 @@ make.SSEproc <- function()
 
 SSEproc <- function(coefs,bvals,pars,more)
 {
-   devals = as.matrix(bvals$bvals%*%coefs)
+   devals  = as.matrix(bvals$bvals %*%coefs)
    ddevals = as.matrix(bvals$dbvals%*%coefs)
-   colnames(devals) = more$names
-    colnames(ddevals) = more$names
-    names(pars) = more$parnames
+   colnames(devals)  = more$names
+   colnames(ddevals) = more$names
+   names(pars) = more$parnames
     
-#   f = SSE(ddevals,more$qpts,devals,pars,more)
    f = make.SSElik()$fn(ddevals,more$qpts,devals,pars,more)
    return( sum(f) )
 
@@ -38,18 +37,17 @@ SSEproc <- function(coefs,bvals,pars,more)
 
 dSSEproc.dc <- function(coefs,bvals,pars,more)
 {
-   devals = as.matrix(bvals$bvals%*%coefs)
+   devals  = as.matrix(bvals$bvals%*%coefs)
    ddevals = as.matrix(bvals$dbvals%*%coefs)
 
-    colnames(devals) = more$names
-    colnames(ddevals) = more$names
-    names(pars) = more$parnames    
+   colnames(devals)  = more$names
+   colnames(ddevals) = more$names
+   names(pars) = more$parnames    
     
-#  g1 = dSSE.dx(ddevals,more$qpts,devals,pars,more)
-  g1 = make.SSElik()$dfdx(ddevals,more$qpts,devals,pars,more)
+   g1 = make.SSElik()$dfdx(ddevals,more$qpts,devals,pars,more)
 
-  weights = checkweights(more$weights,more$whichobs,g1)
-  g2 = weights*(ddevals-more$fn(more$qpts,devals,pars,more$more))
+   weights = checkweights(more$weights,more$whichobs,g1)
+   g2 = weights*(ddevals-more$fn(more$qpts,devals,pars,more$more))
 
   g = as.vector( as.matrix(t(bvals$bvals)%*%g1 + 2*t(bvals$dbvals)%*%g2) )
 
@@ -115,14 +113,13 @@ d2SSEproc.dc2 <- function(coefs,bvals,pars,more)
 
 d2SSEproc.dcdp <- function(coefs,bvals,pars,more)
 {
-  devals =  as.matrix(bvals$bvals%*%coefs)
-  ddevals =  as.matrix(bvals$dbvals%*%coefs)
+  devals  = as.matrix(bvals$bvals%*%coefs)
+  ddevals = as.matrix(bvals$dbvals%*%coefs)
 
-    colnames(devals) = more$names
-    colnames(ddevals) = more$names
-    names(pars) = more$parnames    
+  colnames(devals)  = more$names
+  colnames(ddevals) = more$names
+  names(pars)       = more$parnames    
     
-#  H1 = d2SSE.dxdp(ddevals,more$qpts,devals,pars,more)
   H1 = make.SSElik()$d2fdxdp(ddevals,more$qpts,devals,pars,more)
   H2 = 2*more$dfdp(more$qpts,devals,pars,more$more)
   weights = checkweights(more$weights,more$whichobs,H1[,,1,drop=FALSE])

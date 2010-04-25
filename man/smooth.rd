@@ -6,11 +6,11 @@
 \usage{
 Smooth.LS(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,fd.obj=NULL,
         more=NULL,weights=NULL,quadrature=NULL,in.meth='nlminb',
-        control.in,eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
+        control.in,eps=1e-6,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
         
 Smooth.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
         fd.obj=NULL,more=NULL,quadrature=NULL,in.meth='nlminb',
-        control.in,eps=1e-6,posproc=0,poslik=0,discrete=0,names=NULL,sparse=FALSE)
+        control.in,eps=1e-6,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
 }
 \arguments{
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
@@ -62,7 +62,7 @@ The last calls \code{SplineEst.NewtRaph}. This is fast but has poor convergence.
 \item{posproc}{ Should the state vector be constrained to be positive? If this is the case, the state is represented by
 an exponentiated basis expansion in the \code{proc} object. }
 \item{poslik}{ Should the state be exponentiated before being compared to the data? When the state is represented
-on the log scale \code{posproc=1}, this is an alternative to taking the log of the data. }
+on the log scale (\code{posproc=TRUE}), this is an alternative to taking the log of the data. }
 \item{discrete}{ Is this a discrete or continuous-time system?}
 \item{names}{ The names of the state variables if not given by the column names of \code{coefs}.}
 \item{sparse}{ Should sparse matrices be used for basis values? This option can save memory when 
@@ -104,13 +104,13 @@ coefs = matrix(0,200,2)
 lambda = 10000
 
 res1	= Smooth.LS(make.Henon(),data=Y,times=t,pars=hpars,coefs,basisvals=basisvals,
-  lambda=lambda,in.meth='nlminb',discrete=1)
+  lambda=lambda,in.meth='nlminb',discrete=TRUE)
 
 # For multinormal transitions
 
 var = c(1,0.01)
 
 res2 = Smooth.multinorm(make.Henon(),data=Y,t,pars=hpars,coefs,basisvals=NULL,
-  var=var,in.meth='nlminb',discrete=1)
+  var=var,in.meth='nlminb',discrete=TRUE)
   
 }

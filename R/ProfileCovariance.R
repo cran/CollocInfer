@@ -5,7 +5,7 @@
 #
 # The main function is 'Profile.covariance'. Some utility functions are also defined. 
 
-Profile.covariance <- function(pars,active=NULL,times,data,coefs,lik,proc,in.meth='nlminb',control.in=NULL,eps=1e-6)
+Profile.covariance <- function(pars,active=NULL,times,data,coefs,lik,proc,in.meth='nlminb',control.in=NULL,eps=1e-6,GN=FALSE)
 {
     check.lik.proc.data.coefs(lik,proc,data,times,coefs)
 
@@ -13,27 +13,31 @@ Profile.covariance <- function(pars,active=NULL,times,data,coefs,lik,proc,in.met
 
     apars = pars[active]
     
-    H = matrix(0,length(apars),length(apars))
-
     g = ProfileDP(pars=apars,allpars=pars,times=times,data=data,coefs=coefs,lik=lik,proc=proc,active=active,sumlik=FALSE)
-    gg = apply(g,2,sum)
 
-    for(i in 1:length(apars)){        
-      if(file.exists('curcoefs.tmp')){file.remove('curcoefs.tmp')}
-      if(file.exists('optcoefs.tmp')){file.remove('optcoefs.tmp')}
-      if(file.exists('counter.tmp')){file.remove('counter.tmp')}
+    if(!GN){
+      H = matrix(0,length(apars),length(apars))
+      gg = ProfileDP(pars=apars,allpars=pars,times=times,data=data,coefs=coefs,lik=lik,proc=proc,active=active,sumlik=TRUE)
+      for(i in 1:length(apars)){
+        if(file.exists('curcoefs.tmp')){file.remove('curcoefs.tmp')}
+        if(file.exists('optcoefs.tmp')){file.remove('optcoefs.tmp')}
+        if(file.exists('counter.tmp')){file.remove('counter.tmp')}
 
-        tpars = apars
-        tpars[i] = tpars[i] + eps
+          tpars = apars
+          tpars[i] = tpars[i] + eps
 
-        tf = ProfileErr(tpars,pars,times,data,coefs,lik,proc,in.meth=in.meth,control.in=control.in,active=active)  
-        tg = ProfileDP(tpars,pars,times,data,coefs,lik,proc,active=active,sumlik=TRUE)                            
+          tf = ProfileErr(tpars,pars,times,data,coefs,lik,proc,in.meth=in.meth,control.in=control.in,active=active)
+          tg = ProfileDP(tpars,pars,times,data,coefs,lik,proc,active=active,sumlik=TRUE)
 
-        H[,i] = (tg-gg)/eps
+          H[,i] = (tg-gg)/eps
 
-      if(file.exists('curcoefs.tmp')){file.remove('curcoefs.tmp')}
-      if(file.exists('optcoefs.tmp')){file.remove('optcoefs.tmp')}
-      if(file.exists('counter.tmp')){file.remove('counter.tmp')}
+        if(file.exists('curcoefs.tmp')){file.remove('curcoefs.tmp')}
+        if(file.exists('optcoefs.tmp')){file.remove('optcoefs.tmp')}
+        if(file.exists('counter.tmp')){file.remove('counter.tmp')}
+      }
+    }
+    else{
+        H = t(g[,active])%*%g[,active]
     }
            
     Covar = NeweyWest.Var( 0.5*(t(H)+H) ,g,5)
@@ -51,6 +55,23 @@ Profile.covariance <- function(pars,active=NULL,times,data,coefs,lik,proc,in.met
 
 blocks2mat = function(H)   # List of matrices -> large matrix
 {
+  if(is.spam(H[[1]][[1]])){
+      if(length(H[[1]])>1){ out = cbind(H[[1]][[1]],H[[1]][[2]]) }
+      else{ out = H[[1]][[1]] }
+     if(length(H[[1]]) > 2){for(j in 3:length(H[[1]])){
+        out = cbind(out,H[[1]][[j]])
+      }}  
+  
+     if(length(H) > 1){for(i in 2:length(H)){
+      if(length(H[[i]])>1){ tout = cbind(H[[i]][[1]],H[[i]][[2]]) }
+      else{ tout = H[[i]][[1]] }
+      if(length(H[[i]])>2){for(j in 3:length(H[[i]])){
+        tout = cbind(tout,H[[i]][[j]])
+      }}
+      out = rbind(out,tout)
+    }}
+  }
+  else{
     rowdims = rep(0,length(H))
     coldims = rep(0,length(H[[1]]))
     for(i in 1:length(H[[1]])){ coldims[i] = ncol(H[[1]][[i]]) }
@@ -68,8 +89,8 @@ blocks2mat = function(H)   # List of matrices -> large matrix
         out[(rowdims[i]+1):rowdims[i+1],(coldims[j]+1):coldims[j+1]] = H[[i]][[j]]
       }
     }
-
-    return(out)
+  }
+  return(out)
 }
 
 

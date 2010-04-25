@@ -17,7 +17,7 @@ outeropt(data,times,pars,coefs,lik,proc,
 \item{in.meth}{ Inner optimization function currently one of 'nlminb', 'maxNR', 'optim' or 'SplineEst'. The last calls \code{SplineEst.NewtRaph}.
 This is fast but has poor convergence.  }
 \item{out.meth}{ Outer optimization function to be used, one of 'optim' (defaults to  BFGS routine in \code{optim} unless \code{control.out$meth}
-specifies otherwise), 'nlminb', 'maxNR', 'trust'
+specifies otherwise), 'nlminb', 'maxNR' #, 'trust'
 or 'subplex'. When squared error is being used, 'ProfileGN' and 'nls' can also be given. The former of these calls \code{Profile.GausNewt},
 a fast but naive Gauss-Newton solver. }
 \item{control.in}{ Control object for inner optimization function. }

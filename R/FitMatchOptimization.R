@@ -16,7 +16,7 @@
 FitMatchOpt <- function(coefs,which,pars,proc,meth='nlminb',control=list())
 {
     check.lik.proc.data.coefs(lik=NULL,proc,data=NULL,times=NULL,coefs=coefs)
-  
+
    if(meth=="optim"){
       if( is.null(control$trace) ){ control$trace = 6 }
       if( is.null(control$maxit) ){ control$maxit = 1000 }
@@ -81,10 +81,12 @@ FitMatchErr = function(coefs,allcoefs,which,pars,proc,sgn=1)       # Matching un
 
 ################################################
 
-FitMatchDC = function(coefs,allcoefs,which,pars,proc,sgn=1)    # Derivatives for matching unmeasured components
+FitMatchDC = function(coefs,allcoefs,which,pars,proc,sgn=1)    
 {
+    # Derivatives for matching unmeasured components 
+   
     allcoefs[,which] = matrix(coefs,nrow(allcoefs),length(which))
-
+ 
     g = matrix( proc$dfdc(allcoefs,proc$bvals,pars,proc$more), dim(allcoefs) )
 
     g = as.vector( g[,which] )

@@ -80,7 +80,7 @@ lik2$bvals = lik$bvals
 DEfd = smooth.basis(times,log(truestates),fdPar(bbasis,1,0.0001))
 coefs = DEfd$fd$coefs
 
-res0 = inneropt(coefs=coefs,pars=pars,times=times,data=data,lik=lik2,proc=proc,in.meth='nlminb',control.in=list(trace=1,useHessian=FALSE,eval.max=10000,iter.max=10000))
+res0 = inneropt(coefs=coefs,pars=res1$pars,times=times,data=data,lik=lik2,proc=proc,in.meth='SplineEst',control.in=list(trace=6))
 
 traj = lik$bvals%*%res0$coefs
 matplot(times,traj,type='l',lty=1)
@@ -90,7 +90,7 @@ matplot(times,log(truestates),type='l',lty=2,add=TRUE)
 plot(times,exp(traj[,3])*pars['report.prob'],type='l')
 points(times,data)
 
-res1 = outeropt(coefs=res0$coefs,pars=pars,times=times,data=data,lik=lik2,proc=proc,in.meth='nlminb',control.in=list(trace=1,useHessian=FALSE,eval.max=10000,iter.max=10000))
+res1 = outeropt(coefs=res1$coefs,pars=res1$pars,times=times,data=data,lik=lik2,proc=proc,in.meth='SplineEst',control.in=list(trace=1))
 
 traj = lik$bvals%*%res1$coefs
 matplot(times,traj,type='l',lty=1)

@@ -14,6 +14,8 @@
 \alias{check.lik.proc.data.coefs}
 \alias{oderhs}
 \alias{chemo.ode}
+\alias{ProfileErr1}
+\alias{ProfileDP1}
 % \alias{coefs2list}
 % \alias{list2diag}
 % \alias{whichpars.default}
