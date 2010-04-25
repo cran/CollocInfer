@@ -1,0 +1,11 @@
+some testing
+
+repeated measurements
+
+
+- Examples:
+	- SEIR
+
+
+- Re-write manual
+

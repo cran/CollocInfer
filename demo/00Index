@@ -1,0 +1,6 @@
+FhNEx   	Sample Continous System FitzHugh-Nagumo
+HenonEx 	Sample Discrete System Henon Map
+SEIREX      Sample partially observed SEIR system measured on the log scale
+FhN.diagnostics  Sample diagnostics for model building
+NorthShore  Sample Forced Linear System of groundwater from Vancouver's North Shore
+ChemoEx     Sample Example System from Chemostat predator-predy dynamics. 
