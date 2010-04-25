@@ -482,7 +482,7 @@ ProfileDP = function(pars, allpars, times, data, coefs, lik, proc,
     }
     else{ 
         colnames(g) = names(allpars)
-        g = g[,active] 
+        g = g[,active,drop=FALSE] 
     }
     
     return(g)        
@@ -536,8 +536,8 @@ ProfileSSE = function(pars, allpars, times, data, coefs, lik, proc,
 #        attr(f,'gradient') = attr(f,'gradient')[,active]
     }
     else{
-        f$gradient = f$gradient[,active]
-        f$dcdp = f$dcdp[,active]
+        f$gradient = f$gradient[,active,drop=FALSE]
+        f$dcdp = f$dcdp[,active,drop=FALSE]
     }
     return(f)
 }

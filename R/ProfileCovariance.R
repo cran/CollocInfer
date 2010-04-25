@@ -12,10 +12,12 @@ Profile.covariance <- function(pars,active=NULL,times,data,coefs,lik,proc,in.met
     if(is.null(active)){ active = 1:length(pars) }
 
     apars = pars[active]
-    
+   
     g = ProfileDP(pars=apars,allpars=pars,times=times,data=data,coefs=coefs,lik=lik,proc=proc,active=active,sumlik=FALSE)
+    if(!is.matrix(g)){ g = matrix(g,length(g),length(active)) }
 
     if(!GN){
+
       H = matrix(0,length(apars),length(apars))
       gg = ProfileDP(pars=apars,allpars=pars,times=times,data=data,coefs=coefs,lik=lik,proc=proc,active=active,sumlik=TRUE)
       for(i in 1:length(apars)){
@@ -157,15 +159,14 @@ NeweyWest.Var = function(H,g,maxlag)
         n = nrow(g)
         maxlag = max(5,n^(0.25))
     }
-
+              
     if(maxlag > 0){
-        for(i in 1:(ncol(g)-1)){
-            for(j in (i+1):ncol(g)){
+        for(i in 1:ncol(g)){
+            for(j in i:ncol(g)){
                 I[i,j] = Newey.West(g[,i],g[,j],maxlag)
                 I[j,i] = I[i,j]
             }    
         }
-     
     }
     return( V%*%(I+ t(g)%*%g)%*%V  )
 

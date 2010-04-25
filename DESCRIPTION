@@ -1,5 +1,5 @@
 Package: CollocInfer
-Version: 0.1.3
+Version: 0.1.4
 Date: 2010-04-25
 Title: Collocation Inference for Dynamic Systems
 Author: Giles Hooker <gjh27@cornell.edu>, Luo Xiao <lx42@cornell.edu>,
@@ -14,6 +14,6 @@ Description: These functions implement collocation-inference for
 License: GPL (>= 2)
 URL: http://www.bscb.cornell.edu/~hooker
 LazyData: true
-Packaged: 2011-03-24 14:27:35 UTC; Giles
+Packaged: 2011-03-29 14:55:49 UTC; gilesh
 Repository: CRAN
-Date/Publication: 2011-03-24 16:54:52
+Date/Publication: 2011-03-29 15:35:54

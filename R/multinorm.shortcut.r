@@ -217,11 +217,11 @@ multinorm.setup = function(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.ob
       else{
        len = length(times)
        if(sparse){
-         proc$bvals = list(bvals = spam(basis[1:(len-1),]),
-                           dbvals= spam(basis[2:len,]))
+         proc$bvals = list(bvals = spam(basisvals[1:(len-1),]),
+                           dbvals= spam(basisvals[2:len,]))
        } else{
-         proc$bvals = list(bvals = basis[1:(len-1),],
-                           dbvals= basis[2:len,])       
+         proc$bvals = list(bvals = basisvals[1:(len-1),],
+                           dbvals= basisvals[2:len,])
        }
        proc$more$qpts = rep(times[1:(len-1)],nrep)
       }

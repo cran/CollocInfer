@@ -8,22 +8,8 @@ library("CollocInfer")
 ####   Data generation from a solution of the ODE #######
 #########################################################
 
-#  41 time values from 0 to 20 in steps of 0.005
-#  ??  would fewer time points work?
 
-FhNtimes = seq(0,20,0.5)
-
-#  parameter values
-#  ??  what about other parameter values?
-
-pars = c(0.2,0.2,3)
-names(pars) = c('a','b','c')
-
-#  initial values and variable labels
-#  ??  how about other starting values?  
-
-x0 = c(-1,1)
-names(x0) = c('V','R')
+data(FhNdata)
 
 #  define the functions using function make.fhn
 
@@ -37,20 +23,9 @@ names(x0) = c('V','R')
 
 FhN = make.fhn()
 
-#  approximate the solution for these values over about three cycles
 
-solution = lsoda(x0,times=FhNtimes,func=FhN$fn.ode,pars)
 
-#  extract the function values at time points (1st col contains times)
-
-y = solution[,2:3]
-
-#  add observational error to the function values to define data
-#  ??  what if the errors were larger?
-
-FhNdata = y + 0.05*array(rnorm(802),dim(y))
-
-# We also remove the 'R' part of the data (ie, assume we did not measure
+# We can also remove the 'R' part of the data (ie, assume we did not measure
 # it) and set the corresponding coefficients to zero
 
 V.FhNdata = FhNdata
@@ -58,7 +33,6 @@ V.FhNdata[,2] = NA
 
 # Now we want to set up a basis expansion; this makes use of
 # routines in the fda library
-#  ??  do we need this many knots (41)?
 
 knots  = seq(0,20,0.5)
 norder = 3
@@ -92,13 +66,11 @@ V.coefs0 = coefs0
 V.coefs0[,2] = 0
 
 #  Set a value for lambda
-#  ??  What would happen if lambda were small or larger?
 
 lambda = 1000
 
 # Optimize the coefficients  in coefs0, that is, run the lowest level or
 # inner optimization loop, maximizing function J(c|theta,lambda)
-# ?? why use function nlminb to optimize, what about optim or some other?
 
 Ires1	= Smooth.LS(FhN,FhNdata,FhNtimes,FhNpars,coefs0,FhNbasis,lambda,
                   in.meth='nlminb')
