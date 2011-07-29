@@ -75,28 +75,23 @@ lambda = 1000
 Ires1	= Smooth.LS(FhN,FhNdata,FhNtimes,FhNpars,coefs0,FhNbasis,lambda,
                   in.meth='nlminb')
 
-# Let's have a look at this
+# We have some handy plotting routines 
 
-coefs1 = Ires1$coefs
+plotout1 = CollocInferPlots(Ires1$coefs,FhNpars,Ires1$lik,Ires1$proc,FhNtimes,FhNdata)
 
-DEfd1 = fd(coefs1,FhNbasis,fdnames)
-
-plotfit.fd(FhNdata, FhNtimes, DEfd1)
 
 # Now we can do the profiling, running the outer loop to optimize
 #  parameter values.  You may wish to turn off output buffering in the
 #  Misc menu in the command window at this point.
 
-Ores1 = Profile.LS(FhN,FhNdata,FhNtimes,FhNpars,coefs=coefs1,
+Ores1 = Profile.LS(FhN,FhNdata,FhNtimes,FhNpars,coefs=Ires1$coefs,
                    basisvals=FhNbasis,lambda=lambda)
 
 # And look at the result
 
 Ores1$pars
 
-DEfd2 = fd(Ores1$coefs,FhNbasis,fdnames)
-
-plotfit.fd(FhNdata, FhNtimes, DEfd2)
+plotout2 = CollocInferPlots(Ores1$coefs,Ores1$pars,Ores1$lik,Ores1$proc,FhNtimes,FhNdata)
 
 #  Repeat these analyses for the data with only V measured
 
@@ -105,31 +100,34 @@ Ores1.V = Profile.LS(FhN,V.FhNdata,FhNtimes,FhNpars,coefs=V.coefs0,
 
 Ores1.V$pars
 
-DEfd2.V = fd(Ores1.V$coefs,FhNbasis,fdnames)
+plotout2.V = CollocInferPlots(Ores1.V$coefs,Ores1.V$pars,Ores1.V$lik,Ores1.V$proc,FhNtimes,V.FhNdata)
 
-plot(DEfd2.V['V'])
-points(FhNtimes, V.FhNdata[,1])
 
-plot(DEfd2.V['R'])
 
 # If we only coded the FitzHugh Nagumo function with no derivatives we would just
 # have make.fhn()$fn, in which case we default to estimating the derivatives by
 # finite differencing.  The first argument provides access only to the 
 # function evaluating the right hand side.
 
-Ires1a = Smooth.LS(FhN$fn,FhNdata,FhNtimes,FhNpars,coefs1,FhNbasis,lambda,
+fhn.fun <- function(times, y, p, more) {
+        r = y
+        r[, "V"] = p["c"] * (y[, "V"] - y[, "V"]^3/3 + y[, "R"])
+        r[, "R"] = -(y[, "V"] - p["a"] + p["b"] * y[, "R"])/p["c"]
+        return(r)
+    }
+
+
+Ires1a = Smooth.LS(fhn.fun,FhNdata,FhNtimes,FhNpars,coefs0,FhNbasis,lambda,
                    in.meth='nlminb')
 
 # Now we can do the profiling
 
-Ores1a = Profile.LS(FhN$fn,FhNdata,FhNtimes,FhNpars,coefs=coefs1,
-                    basisvals=FhNbasis,lambda=lambda)
+Ores1a = Profile.LS(fhn.fun,FhNdata,FhNtimes,FhNpars,coefs=Ires1a$coefs,
+                    basisvals=FhNbasis,lambda=lambda,out.meth='nlminb')
   
 Ores1a$pars
 
-DEfd2a = fd(Ores1a$coefs,FhNbasis,fdnames)
-
-plotfit.fd(FhNdata, FhNtimes, DEfd2a)   
+plotout1a = CollocInferPlots((Ores1a$coefs,Ores1a$pars,Ores1a$lik,Ores1a$proc,FhNtimes,V.FhNdata)
   
 #### Option 2:  set-up functions for proc and lik objects and then call
 # optimizers.  This is a longer form of the analysis, in which the

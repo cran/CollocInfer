@@ -16,6 +16,7 @@
 \alias{chemo.ode}
 \alias{ProfileErr1}
 \alias{ProfileDP1}
+\alias{mat}
 % \alias{coefs2list}
 % \alias{list2diag}
 % \alias{whichpars.default}

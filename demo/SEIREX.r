@@ -188,10 +188,10 @@ SEIRlik  = objs$lik
 #  titled 'user' is the current elapsed session time in seconds.
 #  The optimization function to be used is function nlminb.
 
-proc.time()
+
 res1 = FitMatchOpt(coefs=coefs, which=1:2, proc=SEIRproc, pars=SEIRpars,
                    meth='nlminb')
-proc.time()
+
 
 # Let's have a look at the three functions and the fit to the I data
 
@@ -205,10 +205,8 @@ legend(0,12,SEIRvarnames,col=c(4,2,3),lty=c(1:3),lwd=2)
 # starting points. 
 # The optimization function to be used is function nlminb.
 
-proc.time()
 res2 = inneropt(data=logdata, times=SEIRtimes, pars=SEIRpars,
                 proc=SEIRproc,lik=SEIRlik, coefs=res1$coefs, in.meth='nlminb')
-proc.time()
 
 #  define the new function estimates
 
@@ -237,11 +235,11 @@ legend(0,12,SEIRvarnames,col=c(4,2,3),lty=c(1:3),lwd=2)
 
 
 SEIRactive = c('i','b0','b1','b2')
-proc.time()
+
 res3 = outeropt(data=logdata, times=SEIRtimes, pars=SEIRpars,
                 proc=SEIRproc, lik=SEIRlik, coefs=res2$coefs,
                 active=SEIRactive)
-proc.time()
+
 
 #  display the initial and estimated parameter values
 
@@ -256,19 +254,27 @@ DEfd3 = fd(res3$coefs,bbasis)
 plot(DEfd3,lwd=2,ylim=c(5,14),col=c(4,2,3),lty=c(1:3))
 legend(0,12,SEIRvarnames,col=c(4,2,3),lty=c(1:3),lwd=2)
 
-# Let's compare this to the data
+
+# We can now employ CollocInferPlots to explore fit to the data
+
+out3 = CollocInferPlots(pars=res3$pars,coefs=res3$coef,lik=SEIRlik,proc=SEIRproc,data=logdata,times=SEIRtimes)
+
+
+# This function just automates the following calculations:
+
+# Compare the smooth of the data to the data itself:
 
 plotfit.fd(logdata[,3],SEIRtimes,DEfd3[3],ylab='Fit to Data')
 
-# We can also look at the discrepancy between the estimated trajectory and the
-# differential equation
+# 2: We can also look at the discrepancy between the estimated trajectory and the
+# differential equation in terms of its derivatives
 
 traj = eval.fd(SEIRtimes,DEfd3)     # estimated trajectory
 colnames(traj) = SEIRvarnames
 
 dtraj = eval.fd(SEIRtimes,DEfd3,1)  # derivative of the estimated trajectory
 
-# Trajectory predicted by ODE
+# derivative as modeled by the ODE by ODE
 
 ftraj = SEIRproc$more$fn(SEIRtimes,traj,res3$pars,SEIRproc$more$more)   
 
@@ -280,11 +286,13 @@ matplot(SEIRtimes,dtraj,type='l',lty=2,ylim =c(-10,10),col=c(4,2,3),
         ylab='SEIR derivatives' )
 matplot(SEIRtimes,ftraj,type='l',lty=1,add=TRUE,col=c(4,2,3))
 
-#  plot the differences between the actual and predicted derivatives
+#  3. Plot the differences between the actual and predicted derivatives
 
 X11()
 matplot(SEIRtimes,dtraj-ftraj,type='l',ylim=c(-4,4), col=c(4,2,3),
         ylab='Residuals')
+        
+        
 
 ## The alternative is to exponentiate the state before we compare to the data.
 # This can take a very long time and is only recommended if you really need 
@@ -303,6 +311,7 @@ res2 = inneropt(data=data, times=SEIRtimes, pars=res3$pars,
 res3 = outeropt(data=data, times=SEIRtimes, pars=res3$pars,
                 proc=SEIRproc2, lik=SEIRlik2, coefs=res3$coefs,
                 active=c('i','b0','b1','b2'))
+
 
 ###############################################################################
 # Some more basic setup operations
@@ -382,20 +391,22 @@ lslik$more$parnames = SEIRparnames
 
 # Numerically things work much better on the log scale
 
-dfd = data2fd(logdata[,3],SEIRtimes,bbasis)
+DEfd = smooth.basis(SEIRtimes,logdata,fdPar(bbasis,1,0.5)) 
 
 coefs = matrix(0,nbasis,3)
-coefs[,3] = dfd$coefs
+coefs[,3] = DEfd$fd$coefs[,3] 
  
 res = FitMatchOpt(coefs=coefs, which=1:2, proc=lsproc, pars=SEIRpars,
                   meth='nlminb')
+
+# This is the non-log scale run; once again, this can take a few hours
 
 res2 = inneropt(data=data, times=SEIRtimes, pars=SEIRpars,
                 proc=lsproc, lik=slik, coefs=res$coefs)
 
 res3 = outeropt(data=data, times=SEIRtimes, pars=SEIRpars, proc=lsproc,
                 lik=slik, coefs=res2$coefs, active=c('i','b0','b1','b2'))
-
+                
 
 ## Or just log the observations, this is faster. 
 
@@ -405,4 +416,4 @@ res2 = inneropt(data=logdata, times=SEIRtimes, pars=SEIRpars,
 res3 = outeropt(data=logdata, times=SEIRtimes, pars=SEIRpars,
                 proc=lsproc, lik=slik, coefs=res2$coefs,
                 active=c('i','b0','b1','b2'))
-
+                

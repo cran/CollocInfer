@@ -71,7 +71,7 @@ bbasis = create.bspline.basis(range=range(FhNtimes),nbasis=nbasis,
 
 fd.data = FhNdata[,1]
 
-DEfd = smooth.basis(FhNtimes,fd.data,fdPar(bbasis,1,0.5))
+DEfd = smooth.basis(FhNtimes,fd.data,fdPar(bbasis,1,0.5))   
 
 coefs = cbind(DEfd$fd$coefs,rep(0,nbasis))
 colnames(coefs) = FhNvarnames
@@ -80,7 +80,8 @@ colnames(coefs) = FhNvarnames
 ### If We Only Observe One State, We Can Re-Smooth Others ### 
 #############################################################
 
-profile.obj = LS.setup(pars=FhNpars,coefs=coefs,fn=make.fhn(),basisvals=bbasis,lambda=1000,times=FhNtimes)
+profile.obj = LS.setup(pars=FhNpars,coefs=coefs,fn=make.fhn(),
+                      basisvals=bbasis,lambda=1000,times=FhNtimes)
 lik = profile.obj$lik
 proc= profile.obj$proc
 

@@ -1,8 +1,7 @@
 Smooth.LS <- function(fn, data, times, pars, coefs=NULL, basisvals=NULL,
                        lambda,fd.obj=NULL,more=NULL,weights=NULL,
-	                     quadrature=NULL, in.meth='nlminb', control.in=list(), eps=1e-6,
-                       posproc=FALSE, poslik=FALSE, discrete=FALSE, names=NULL, sparse=FALSE,
-                       likfn = make.id(), likmore = NULL)
+	                     quadrature=NULL, likfn = make.id(), likmore = NULL,in.meth='nlminb', control.in=list(), eps=1e-6,
+                       posproc=FALSE, poslik=FALSE, discrete=FALSE, names=NULL, sparse=FALSE)
 {
       
     dims = dim(data)
@@ -44,10 +43,10 @@ Smooth.LS <- function(fn, data, times, pars, coefs=NULL, basisvals=NULL,
 
 Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
-                        in.meth='nlminb',out.meth='nls',
+                        likfn = make.id(), likmore = NULL,in.meth='nlminb',out.meth='nls',
                         control.in=list(),control.out=list(),eps=1e-6,
                         active=NULL,posproc=FALSE,poslik=FALSE,discrete=FALSE,
-                        names=NULL,sparse=FALSE,likfn=make.id(),likmore=NULL)
+                        names=NULL,sparse=FALSE)
 {
 #    browser()
     if(is.null(active)){ active = 1:length(pars) }
@@ -58,6 +57,7 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                            likfn=make.id(),likmore=NULL)
 
     dims = dim(data)
+    if(length(dims) ==2){ dims=c(dims[1],1,dims[2]) }
 
     lik   = profile.obj$lik
     proc  = profile.obj$proc
@@ -78,22 +78,22 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
     apars = pars[active]
     aparamnames = names(apars)
     
-    ################  Gauss-Newton optimization  #########################
+    
     if(out.meth == "ProfileGN"){
+    ################  Gauss-Newton optimization  #########################
       res=Profile.GausNewt(pars=pars, times=times, data=data, coefs=ncoefs,
 		               lik=lik, proc=proc, in.meth=in.meth,
                            control.in=control.in,
 		               active=active, control=control.out)
       apars = res$pars[active]
-
+      pars[active] = apars
+      
       ncoefs = res$in.res$coefs
       g = res$in.res$df
       resid = res$in.res$f
     }
-
-    ################  nls optimization  #########################
-
-    if(out.meth == "nls"){
+    else if(out.meth == "nls"){      
+    ################  nls optimization  ########################
       if(is.null(control.out$trace)){control.out$trace=TRUE}
       if(is.null(control.out$maxiter)){control.out$maxiter=100}
       if(is.null(control.out$tol)){control.out$tol=1e-8}
@@ -107,17 +107,21 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
         start = list(pars=pars[active]),trace=control.out$trace,control=control.out)   
       apars = res$m$getPars()
 
+      names(apars) = aparamnames
+
+      pars[active] = apars
       g = res$m$gradient()
       resid = res$m$resid()
-      if(file.exists('curcoefs.tmp'))
+      if(file.exists('curcoefs.tmp')){
       	 ncoefs = as.matrix(read.table(file='curcoefs.tmp'))
-      else 
-         ncoefs = coefs
+      }else{  ncoefs = coefs }
+    }
+    else{
+      res = outeropt(data,times,pars,ncoefs,lik,proc,in.meth=in.meth,out.meth=out.meth,
+                      control.in=control.in,control.out=control.out,active=active)
+      ncoefs = res$coefs
     }
 
-    names(apars) = aparamnames
-
-    pars[active] = apars
 
     ncoefs = as.matrix(ncoefs)
     if(!is.null(proc$more$names)){ colnames(ncoefs) = proc$more$names }
@@ -142,9 +146,9 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
 
 LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
                      more=NULL, data=NULL, weights=NULL, times=NULL,
-                     quadrature=NULL, eps=1e-6, posproc=FALSE, poslik = FALSE, 
-                     discrete=FALSE, names=NULL, sparse=FALSE,
-                     likfn = make.id(), likmore = NULL)
+                     quadrature=NULL, likfn = make.id(), likmore = NULL,
+                     eps=1e-6, posproc=FALSE, poslik = FALSE, 
+                     discrete=FALSE, names=NULL, sparse=FALSE)
 {
     colnames = names
 

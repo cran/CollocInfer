@@ -76,6 +76,8 @@ library("CollocInfer")
 #tobs = (index - index[1])
 
 
+data(NSdata)
+
 yobs = NSgroundwater
 zobs = NSrainfall
 tobs = NStimes

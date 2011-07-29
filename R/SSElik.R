@@ -15,20 +15,29 @@
 
 # as well as function checkweights
 
+mat <- function(x){
+  if(!is.matrix(x)) x = matrix(x,ncol=1)
+  x}
+
 ################################################################################
 make.SSElik <- function()
 {
 
-  ##############################################################################
+##############################################################################
 SSE <- function(data,times,devals,pars,more)
 {
-    fdevals = more$fn(times,devals,pars,more$more)
+    # evaluate the fit to the data:
+    #    if more$fn is id$fn, devals is returned
+    #     if more$fn is exp$fn, exp(devals) is returned
+    
+        fdevals = more$fn(times, devals, pars, more$more)
+        difs = data - fdevals
+        difs[is.na(difs)] = 0     
+        weights = checkweights(more$weights, more$whichobs, mat(difs))
+        weights = mat(weights) 
+        f = apply(weights * difs^2, 1, sum)
+        return(f)
 
-    difs = data-fdevals
-    difs[is.na(difs)] = 0       
-    weights = checkweights(more$weights,more$whichobs,difs)
-    f = apply( weights*difs^2, 1, sum )
-    return(f)
 }
 
   ##############################################################################
@@ -37,9 +46,10 @@ dSSE.dx <- function(data,times,devals,pars,more)
 {
     fdevals = more$fn(times,devals,pars,more$more)
     difs = data-fdevals
-    difs[is.na(difs)] = 0   
+    difs[is.na(difs)] = 0 
     
-    weights = checkweights(more$weights,more$whichobs,difs)
+    weights = checkweights(more$weights,more$whichobs,mat(difs))
+    weights = mat(weights)  
     difs = weights*difs
 
     dfdx = more$dfdx(times,devals,pars,more$more)
@@ -58,7 +68,8 @@ dSSE.dy <- function(data,times,devals,pars,more)
     fdevals = more$fn(times,devals,pars,more$more)
     difs = data-fdevals
     difs[is.na(difs)] = 0
-    weights = checkweights(more$weights,more$whichobs,difs)
+    weights = checkweights(more$weights,more$whichobs,mat(difs))
+    weights = mat(weights)  
     difs = weights*difs
 
     return(2*difs)
@@ -71,7 +82,8 @@ dSSE.dp <- function(data,times,devals,pars,more)
     fdevals = more$fn(times,devals,pars,more$more)
     difs = data-fdevals
     difs[is.na(difs)] = 0
-    weights = checkweights(more$weights,more$whichobs,difs)
+    weights = checkweights(more$weights,more$whichobs,mat(difs))
+    weights = mat(weights)   
     difs = weights*difs
 
     dfdp = more$dfdp(times,devals,pars,more$more)
@@ -95,7 +107,8 @@ d2SSE.dx2 <- function(data,times,devals,pars,more)
     d2fdx2 = more$d2fdx2(times,devals,pars,more$more)   
 
     difs[is.na(difs)] = 0
-    weights = checkweights(more$weights,more$whichobs,difs)
+    weights = checkweights(more$weights,more$whichobs,mat(difs))
+    weights = mat(weights)   
     difs = weights*difs
 
 
@@ -114,8 +127,9 @@ d2SSE.dx2 <- function(data,times,devals,pars,more)
 
 d2SSE.dxdy <- function(data,times,devals,pars,more)
 {
-    dfdx = more$dfdx(times,devals,pars,more$more)
-    weights = checkweights(more$weights,more$whichobs,dfdx[,,1])
+    dfdx = more$dfdx(times,devals,pars,more$more)                 
+    weights = checkweights(more$weights,more$whichobs,mat(dfdx[,,1]))
+    weights = mat(weights)   
     weights[is.na(data)] = 0
     
     for(i in 1:dim(dfdx)[3]){
@@ -133,8 +147,9 @@ d2SSE.dy2 <- function(data,times,devals,pars,more)
     r = array(0,c(dim(data),dim(data)[2]))
     
     ind = cbind(rep(1:dim(data)[1],dim(data)[2]),
-        kronecker(cbind(1:dim(data)[2],1:dim(data)[2]),rep(1,dim(data)[1])))
-    weights = checkweights(more$weights,more$whichobs,data)
+        kronecker(cbind(1:dim(data)[2],1:dim(data)[2]),rep(1,dim(data)[1])))  
+    weights = checkweights(more$weights,more$whichobs,mat(data))
+    weights = mat(weights)  
     r[ind] = weights
     return(2*r)
 }
@@ -146,7 +161,8 @@ d2SSE.dxdp <- function(data,times,devals,pars,more)
     fdevals = more$fn(times,devals,pars,more$more)
     difs = data-fdevals
     difs[is.na(difs)] = 0   
-    weights = checkweights(more$weights,more$whichobs,difs)
+    weights = checkweights(more$weights,more$whichobs,mat(difs))
+    weights = mat(weights)    
     difs = weights*difs
 
     dfdx = more$dfdx(times,devals,pars,more$more)
@@ -168,8 +184,9 @@ d2SSE.dxdp <- function(data,times,devals,pars,more)
 
 d2SSE.dydp <- function(data,times,devals,pars,more)
 {
-    dfdp = more$dfdp(times,devals,pars,more$more)
-    weights = checkweights(more$weights,more$whichobs,dfdp[,,1])
+    dfdp = more$dfdp(times,devals,pars,more$more)    
+    weights = checkweights(more$weights,more$whichobs,mat(dfdp[,,1]))
+    weights = mat(weights)    
     weights[is.na(data)] = 0
     
     for(i in 1:dim(dfdp)[3]){
@@ -196,14 +213,22 @@ d2SSE.dydp <- function(data,times,devals,pars,more)
  
 ##############################################################################
  
+
 checkweights <- function(weights,whichrows,diffs){
   if(is.null(whichrows)){ whichrows = 1:nrow(diffs) }
+  if(is.null(weights)){ return(matrix(1,nrow(diffs),ncol(diffs))) } 
+   
+  # If we only get a vector of weights
+  if( !is.matrix(weights) ){
+    if( length(weights) == ncol(diffs)){ weights =  matrix(weights,nrow(diffs),ncol(diffs),byrow=TRUE) }
+    else if( length(weights) == nrow(diffs)){ weights =  matrix(weights,nrow(diffs),ncol(diffs),byrow=FALSE) }
+  }
   
-  if(is.null(weights)){ return(matrix(1,nrow(diffs),ncol(diffs))) }   
-  else if( prod( dim(weights[whichrows,]) == dim(diffs)) ){ return(weights[whichrows,]) }
-  else if( length(weights) == ncol(diffs)){ return( matrix(weights,nrow(diffs),ncol(diffs),byrow=TRUE)) }
-  else if( length(weights[whichrows]) == nrow(diffs)){ return( matrix(weights,nrow(diffs),ncol(diffs),byrow=FALSE)) }
-  else if( ncol(weights[whichrows,]) > ncol(diffs) & nrow(weights) > nrow(diffs) ){
+  # Now if things make sense, return the weights 
+  if( prod( dim(weights[whichrows,]) == dim(diffs)) ){ return(weights[whichrows,]) }
+  
+  # If weights is too big take an obvious subset
+  if( ncol(weights[whichrows,]) > ncol(diffs) & nrow(weights) > nrow(diffs) ){
     warning('Dimension of weights does not match that of data')
     return( weights[whichrows[1:nrow(diffs)],1:ncol(diffs)] )
   }
@@ -211,4 +236,4 @@ checkweights <- function(weights,whichrows,diffs){
      stop('Dimension of weights does not match that of data')
   }
 
-}              
+}                  

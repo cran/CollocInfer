@@ -1,3 +1,4 @@
-import("Matrix")
+import("Matrix","MASS","deSolve","fda")
+importFrom("spam",is.spam,spam)
 exportPattern("^[^\\.]")
 

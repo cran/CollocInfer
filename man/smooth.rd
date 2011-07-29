@@ -5,13 +5,15 @@
 \description{Perform the inner optimization to estimate coefficients given parameters.}
 \usage{
 Smooth.LS(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,fd.obj=NULL,
-        more=NULL,weights=NULL,quadrature=NULL,in.meth='nlminb',
-        control.in,eps=1e-6,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,
-        sparse=FALSE,likfn = make.id(), likmore = NULL)
+        more=NULL,weights=NULL,quadrature=NULL,likfn = make.id(), 
+        likmore = NULL,in.meth='nlminb',control.in,eps=1e-6,
+        posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,
+        sparse=FALSE)
         
 Smooth.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
         fd.obj=NULL,more=NULL,quadrature=NULL,in.meth='nlminb',
-        control.in,eps=1e-6,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
+        control.in,eps=1e-6,posproc=FALSE,poslik=FALSE,discrete=FALSE,
+        names=NULL,sparse=FALSE)
 }
 \arguments{
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
@@ -87,6 +89,40 @@ Defaults to the identity transform. }
 \details{These routines create \code{lik} and \code{proc} objects and call \code{inneropt}.}
 \seealso{inneropt, LS.setup, multinorm.setup, SplineCoefsErr}
 \examples{
+
+###############################
+####   Data             #######
+###############################
+
+data(FhNdata)
+
+###############################
+####  Basis Object      #######
+###############################
+
+knots = seq(0,20,0.2)
+norder = 3
+nbasis = length(knots) + norder - 2
+range = c(0,20)
+
+bbasis = create.bspline.basis(range=range(FhNtimes),nbasis=nbasis,
+	norder=norder,breaks=knots)
+
+
+#### Start from pre-estimated values to speed up optimization
+
+data(FhNest)
+
+spars = FhNestPars
+coefs = FhNestCoefs
+
+lambda = 10000
+
+res1 = Smooth.LS(make.fhn(),data=FhNdata,times=FhNtimes,pars=spars,coefs=coefs,
+  basisvals=bbasis,lambda=lambda,in.meth='nlminb')
+
+
+\dontrun{
 # Henon system
 
 hpars = c(1.4,0.3)              # Parameters
@@ -112,12 +148,15 @@ lambda = 10000
 
 res1	= Smooth.LS(make.Henon(),data=Y,times=t,pars=hpars,coefs,basisvals=basisvals,
   lambda=lambda,in.meth='nlminb',discrete=TRUE)
+}
 
+
+\dontrun{
 # For multinormal transitions
 
 var = c(1,0.01)
 
 res2 = Smooth.multinorm(make.Henon(),data=Y,t,pars=hpars,coefs,basisvals=NULL,
   var=var,in.meth='nlminb',discrete=TRUE)
-  
+}
 }

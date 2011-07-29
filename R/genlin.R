@@ -21,13 +21,18 @@ genlin$fun.ode <- function(t,y,p,more)
 
         fs = matrix(0,length(t),length(more$force))
 
-        for(i in 1:length(more$force)){
-            if(is.fd(more$force[[i]])){
-                fs[,i] = eval.fd(t,more$force[[i]])
-            }
-            else{
-                fs[,i] = more$force[[i]](t,more$force.input)
-            }
+        if(is.fd(more$force)){
+          fs = eval.fd(t,more$force)
+        }
+        else{
+          for(i in 1:length(more$force)){
+              if(is.fd(more$force[[i]])){
+                  fs[,i] = eval.fd(t,more$force[[i]])
+              }
+              else{
+                  fs[,i] = more$force[[i]](t,more$force.input)
+              }
+          }
         }
 
         b = more$force.mat;
@@ -167,8 +172,10 @@ genlin$d2fdxdp <- function(t,y,p,more)
 
 genlin$d2fdx2 <- function(t,y,p,more)
 {
-    more = checkmore.genlin(more,n)
     n = ncol(y)
+    
+    more = checkmore.genlin(more,n)
+    
     r = array(0,c(dim(y)[1],nrow(more$mat), n, n))
 }
 
@@ -193,7 +200,10 @@ checkmore.genlin <- function(more,n)    # checks additional arguments to genlin
         if(is.null(more$mat)){ more$mat = matrix(0,n,n) }
     
         if(!is.null(more$force)){
-            m = length(more$force)
+
+            if(is.fd(more$force)){ m = ncol(more$force$coef) }
+            else{ m = length(more$force) }
+            
             if(is.null(more$force.mat)){ more$force.mat = matrix(0,n,m) }
             if(is.null(more$force.sub)){
                 more$force.sub = cbind(kronecker(matrix(1:n,m,1),matrix(1,m,1)),

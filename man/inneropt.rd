@@ -34,7 +34,8 @@ norder = 3
 nbasis = length(knots) + norder - 2
 range = c(0,20)
 
-bbasis = create.bspline.basis(range=range(FhNtimes),nbasis=nbasis,norder=norder,breaks=knots)
+bbasis = create.bspline.basis(range=range(FhNtimes),nbasis=nbasis,
+                                    norder=norder,breaks=knots)
 
 lambda = 10000               # Penalty value
 
@@ -43,7 +44,8 @@ DEfd = smooth.basis(FhNtimes,FhNdata,fdPar(bbasis,1,0.5))   # Smooth to estimate
 coefs = DEfd$fd$coefs
 colnames(coefs) = FhNvarnames
 
-profile.obj = LS.setup(pars=FhNpars,coefs=coefs,fn=make.fhn(),basisvals=bbasis,lambda=lambda,times=FhNtimes)
+profile.obj = LS.setup(pars=FhNpars,coefs=coefs,fn=make.fhn(),
+                        basisvals=bbasis,lambda=lambda,times=FhNtimes)
 
 lik = profile.obj$lik
 proc= profile.obj$proc

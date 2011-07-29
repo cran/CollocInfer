@@ -14,11 +14,15 @@
 
 ################################################################################
 
+
+
+
 make.SSEproc <- function()
 {
 
   ##############################################################################
 
+  
 SSEproc <- function(coefs,bvals,pars,more)
 {
    devals  = as.matrix(bvals$bvals %*%coefs)
@@ -46,7 +50,8 @@ dSSEproc.dc <- function(coefs,bvals,pars,more)
     
    g1 = make.SSElik()$dfdx(ddevals,more$qpts,devals,pars,more)
 
-   weights = checkweights(more$weights,more$whichobs,g1)
+   weights = checkweights(more$weights,more$whichobs,mat(g1))
+   weights = mat(weights)
    g2 = weights*(ddevals-more$fn(more$qpts,devals,pars,more$more))
 
   g = as.vector( as.matrix(t(bvals$bvals)%*%g1 + 2*t(bvals$dbvals)%*%g2) )
@@ -91,8 +96,8 @@ d2SSEproc.dc2 <- function(coefs,bvals,pars,more)
 
 #  H = array(0,c(rep(dim(bvals$bvals)[2],2),rep(dim(devals)[2],2)))
 
-  weights = checkweights(more$weights,more$whichobs,H1[,,1,drop=TRUE])
-
+  weights = checkweights(more$weights,more$whichobs,mat(H1[,,1,drop=TRUE]))
+  weights = mat(weights)
  H = list(len=dim(bvals$bvals)[2])
   for(i in 1:dim(devals)[2]){
   H[[i]] = list(len=dim(devals))
@@ -122,8 +127,8 @@ d2SSEproc.dcdp <- function(coefs,bvals,pars,more)
     
   H1 = make.SSElik()$d2fdxdp(ddevals,more$qpts,devals,pars,more)
   H2 = 2*more$dfdp(more$qpts,devals,pars,more$more)
-  weights = checkweights(more$weights,more$whichobs,H1[,,1,drop=FALSE])
-
+  weights = checkweights(more$weights,more$whichobs,mat(H1[,,1,drop=TRUE]))
+  weights = mat(weights)
   H = c()
 
   for(i in 1:length(pars)){

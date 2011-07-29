@@ -16,11 +16,10 @@ library('CollocInfer')
 # B - Breeding Rotifers
 # S - Senescent Rotifers
 #
-# The system has 16 parameters, also described in the user manual. Notable
-# features include that only the sums C1+C2 and B+S can be observed. Further, 
-# an unknown fraction of each is counted at each time. This requires us to 
-# set up a model for the observation process along with the ODE. 
-
+# The system has 16 parameters. Notable features include that only the sums 
+# C1+C2 and B+S can be observed. Further, an unknown fraction of each is counted 
+# at each time. This requires us to set up a model for the observation process 
+# along with the ODE. 
 
 # First we load up some data
 
@@ -37,9 +36,6 @@ logpars=c(ChemoPars[1:2],log(ChemoPars[3:16]))
 
 active = c(1:2,5,7:16)     
 
-# We'll choose a fairly large value of lambda. 
-
-lambda = rep(200,5)  
 
 # We need some basis functions
 
@@ -47,7 +43,65 @@ rr = range(ChemoTime)
 knots = seq(rr[1],rr[2],by=0.5)
 bbasis = create.bspline.basis(rr,norder=4,breaks=knots)
 
-# We will also have to set up the basis matrices manually. 
+# smooth obtained from generating some ODE solutions
+
+y0 = log(c(2,0.1,0.4,0.2,0.1))  
+names(y0) = ChemoVarnames
+
+odetraj = lsoda(y0,ChemoTime,func=chemo.ode,logpars)
+
+DEfd   = smooth.basis(ChemoTime,odetraj[,2:6],fdPar(bbasis,int2Lfd(2),1e-6))
+coefs0 = DEfd$fd$coef
+
+
+# We need a measurement model
+
+ChemoMeas = function(t,x,p,more)
+{
+  return( cbind( log(exp(x[,'C1'])+exp(x[,'C2'])) + log(p['a1']), log(exp(x[,'B'])+exp(x[,'S']))+log(p['a2']) ) )
+}
+
+
+# From here we can employ the usual setup functions
+
+out = LS.setup(pars = logpars,coefs = coefs0,fn=chemo.fun,
+        basisvals=bbasis,lambda=c(1e3,2e2,2e2,1e3,1e3)/2,data=ChemoData,times=ChemoTime,
+        posproc=TRUE,names=ChemoVarnames,likfn=ChemoMeas)
+
+
+lik = out$lik
+proc = out$proc
+
+
+# Now, with parameters fixed, we'll estiamte coefficients. 
+
+control.in = list()
+control.in$trace = 2
+control.in$maxit = 1000
+control.in$reltol = 1e-6
+
+res1 = inneropt(coefs=coefs0, pars=logpars, times=ChemoTime, data=log(ChemoData),
+               lik=lik, proc=proc, in.meth='optim', control.in=control.in)
+
+# We'll plot agreement with the data
+
+out1 = CollocInferPlots(res1$coefs,logpars,lik,proc,ChemoTime,log(ChemoData))
+
+
+# And conduct the outer optimization
+
+res2 = outeropt(coefs=coefs0, pars=logpars, times=ChemoTime, data=log(ChemoData),
+               lik=lik, proc=proc, in.meth='optim', control.in=control.in)
+               
+# along with diagnostic plots
+
+out2 = CollocInferPlots(res2$coefs,res2$pars,lik,proc,ChemoTime,log(ChemoData))
+
+###############################################################
+
+# The following provides a manual setup that employs the builtin genin
+# functions for measurement or process models that involve linear combinations
+# of variables. 
 
 mids = c(min(knots),(knots[1:(length(knots)-1)] + 0.25),max(knots))
 
@@ -55,6 +109,11 @@ bvals.obs = eval.basis(ChemoTime,bbasis)
 
 bvals.proc = list(bvals  = eval.basis(mids,bbasis),
                   dbvals = eval.basis(mids,bbasis,1));
+
+
+# We'll choose a fairly large value of lambda. 
+
+lambda = c(1e3,2e2,2e2,1e3,1e3)
 
 
 # We can now set up the proc object. We will want to take a log transformation
@@ -94,6 +153,8 @@ temp.lik$more = make.genlin()
 
 temp.lik$more$more = list(mat=matrix(0,2,5,byrow=TRUE), 
                           sub = matrix(c(1,2,1,1,3,1,2,4,2,2,5,2),4,3,byrow=TRUE))
+#temp.lik$more$weights = matrix(c(100,1),length(ChemoTime),2)
+
 temp.lik$more$weights = c(100,1)
 
 # Finally, we tell CollocInfer that the trajectories are represented on
@@ -123,13 +184,6 @@ control.in$trace = 2
 control.in$maxit = 1000
 control.in$reltol = 1e-6
 
-grad = SplineCoefsDC(coefs=coefs0, times=ChemoTime, data=ChemoData, pars=logpars, 
-                  lik=lik, proc=proc)
-grad = matrix(grad,203,5)
-
-par(mfrow=c(1,1),ask=TRUE)
-for (i in 1:5) plot(1:203,grad[,i],type="l")
-
 res = inneropt(coefs=coefs0, pars=logpars, times=ChemoTime, data=ChemoData,
                lik=lik, proc=proc, in.meth='optim', control.in=control.in)
 
@@ -152,7 +206,7 @@ points(ChemoData[,2])
 
 # Now we can continue with the outer optimization
 
-res2 = outeropt(pars=logpars,times=ChemoTime,data=ChemoData,coef=C,
+res2 = outeropt(pars=logpars,times=ChemoTime,data=ChemoData,coef=coefs1,
     lik=lik,proc=proc,active=active,in.meth='optim',out.meth='nlminb')
 
 # We'll extract the resulting parameters and coefficients. 

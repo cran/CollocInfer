@@ -7,10 +7,10 @@ and run generalized profiling.}
 \usage{
 Profile.LS(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
+                        likfn = make.id(), likmore = NULL,
                         in.meth='nlminb',out.meth='nls',
                         control.in,control.out,eps=1e-6,active=NULL,posproc=FALSE,
-                        poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE,
-                        likfn = make.id(), likmore = NULL)
+                        poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
 
 Profile.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
                         fd.obj=NULL,more=NULL,quadrature=NULL,
@@ -131,6 +131,26 @@ bbasis = create.bspline.basis(range=range(FhNtimes),nbasis=nbasis,
 	norder=norder,breaks=knots)
 
 
+#### Start from pre-estimated values to speed up optimization
+
+data(FhNest)
+
+spars = FhNestPars
+coefs = FhNestCoefs
+
+lambda = 10000
+
+res1 = Profile.LS(make.fhn(),data=FhNdata,times=FhNtimes,pars=spars,coefs=coefs,
+  basisvals=bbasis,lambda=lambda,in.meth='nlminb',out.meth='nls')
+
+Covar = Profile.covariance(pars=res1$pars,times=FhNtimes,data=FhNdata,
+  coefs=res1$coefs,lik=res1$lik,proc=res1$proc) 
+
+
+\dontrun{
+## Alternative, starting from perturbed coefficients -- takes too long for 
+# automatic checks in CRAN
+
 # Initial values for coefficients will be obtained by smoothing
 
 DEfd = smooth.basis(FhNtimes,FhNdata,fdPar(bbasis,1,0.5))   # Smooth to estimate
@@ -152,19 +172,18 @@ res1 = Profile.LS(make.fhn(),data=FhNdata,times=FhNtimes,pars=spars,coefs=coefs,
 
 par(mfrow=c(2,1))
 plotfit.fd(FhNdata,FhNtimes,fd(res1$coefs,bbasis))
+}  
   
-  
-Covar = Profile.covariance(pars=res1$pars,times=FhNtimes,data=FhNdata,
-  coefs=res1$coefs,lik=res1$lik,proc=res1$proc)  
+ 
  
   
+\dontrun{
 ####################################################
 ###  An Explicitly Multivariate Normal Formation ### 
 ####################################################
 
-\dontrun{
 var = c(1,0.0001)
 
-res2 = Profile.multinorm(make.fhn(),FhNdata,FhNtimes,pars=res1$pars,res1$coefs,bbasis,var=var,
-  out.meth='nlminb', in.meth='nlminb')
+res2 = Profile.multinorm(make.fhn(),FhNdata,FhNtimes,pars=res1$pars,
+          res1$coefs,bbasis,var=var,out.meth='nlminb', in.meth='nlminb')
 }}

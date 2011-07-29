@@ -1,7 +1,10 @@
 CollocInferPlots = function(coefs,pars,lik,proc,times=NULL,data=NULL,
-      cols=NULL,datacols=NULL,datanames=NULL,ObsPlot=TRUE,DerivPlot=TRUE)
+      cols=NULL,datacols=NULL,datanames=NULL,ObsPlot=TRUE,DerivPlot=TRUE,
+      cex.axis=1.5,cex.lab=1.5,cex=1.5,lwd=2)
 {
   if(is.null(cols)){ cols = 1:ncol(coefs) }
+
+
 
  timevec = proc$more$qpts
 
@@ -23,32 +26,36 @@ CollocInferPlots = function(coefs,pars,lik,proc,times=NULL,data=NULL,
     else{ datacols = 1:ncol(otraj) }
   }
   
-  X11()
-  matplot(timevec,otraj,type='l',lwd=2,xlab='time',ylab='Observations',
-        cex.lab=1.5,cex.axis=1.5,col=datacols)
+  dev.new()
+  if(cex.lab > 1.5){ par(mar=c(5,5,1,1)) }
+  matplot(timevec,otraj,type='l',lwd=lwd,xlab='time',ylab='Observations',
+        cex.lab=cex.lab,cex.axis=cex.axis,col=datacols)
   if(!is.null(data)){
     if(is.null(datanames)){ datanames = substring(colnames(data),1,1) }
+    if(length(datanames)==0){ datanames = as.character(1:ncol(data)) }
     if(is.null(times)){ times = 1:nrow(data) }
-    matplot(times,data,col=datacols,add=TRUE,pch=datanames)
+    matplot(times,data,col=datacols,add=TRUE,pch=datanames,cex=cex)
   }
  }
   
  if(DerivPlot){
-  X11()
-  matplot(timevec,ftraj,type='l',lwd=2,xlab='time',ylab='f(x): -, dx: --',
-        cex.lab=1.5,cex.axis=1.5,col=cols,lty=1) 
-  matplot(timevec,dtraj,type='l',lwd=2,lty=2,add=TRUE,col=cols)
+  dev.new()
+  if(cex.lab>1.5){par(mar=c(5,5,1,1))}
+  matplot(timevec,ftraj,type='l',lwd=lwd,xlab='time',ylab='f(x): -, dx: --',
+        cex.lab=cex.lab,cex.axis=cex.axis,col=cols,lty=1) 
+  matplot(timevec,dtraj,type='l',lwd=lwd,lty=2,add=TRUE,col=cols)
   abline(h = 0)
   legend(x='topright',legend=proc$more$names,lwd=2,lty=1,col=cols)
  
-  X11()
-  par(mfrow=c(2,1),mar=c(4,4,1,1))
-  matplot(timevec,dtraj-ftraj,type='l',lwd=2,xlab='time',ylab='dx-f(x)',
-        cex.lab=1.5,cex.axis=1.5,col=cols,lty=1)
+  dev.new()
+  if(cex.lab>1.5){par(mar=c(5,5,1,1))}
+  par(mfrow=c(2,1))
+  matplot(timevec,dtraj-ftraj,type='l',lwd=lwd,xlab='time',ylab='dx-f(x)',
+        cex.lab=cex.lab,cex.axis=cex.axis,col=cols,lty=1)
   abline(h=0)     
-  matplot(timevec,traj,type='l',lwd=2,xlab='time',ylab='x',
-        cex.lab=1.5,cex.axis=1.5,col=cols,lty=1)    
-  legend(x='topright',legend=proc$more$names,lwd=2,lty=1,col=cols)
+  matplot(timevec,traj,type='l',lwd=lwd,xlab='time',ylab='x',
+        cex.lab=cex.lab,cex.axis=cex.axis,col=cols,lty=1)    
+  legend(x='topright',legend=proc$more$names,lwd=lwd,lty=1,col=cols,cex=cex)
  }
 
  return(list(timevec=timevec,traj=traj,dtraj=dtraj,ftraj=ftraj,otraj=otraj))

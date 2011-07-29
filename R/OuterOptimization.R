@@ -5,7 +5,7 @@
 # - outeropt: which calls various optimization routines 
 # - Profile.GausNewt: a quick and dirty Gauss-Newton scheme
 # - ProfileErr*: functions that define the inner objective function and its 
-# derivatives. 
+#                derivatives. 
 # - Profile.covariance: functions to estimate sample covariance of profiled 
 # parameters. 
 #####
@@ -32,9 +32,9 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
 #  The optimization method for the inner loop is defined by argument in.meth.
 #  The optimization method for the outer loop is defined by argument out.meth.
 
-#  The function returns the optimized parameter values, a functional data object defining 
-#  the smoothing functions, the likelihood and process functions, and the
-#  residual values.
+#  The function returns the optimized parameter values, a functional data object  
+#  definingthe smoothing functions, the likelihood and process functions, and 
+#  the residual values.
 
     check.lik.proc.data.coefs(lik,proc,data,times,coefs)
     
@@ -103,7 +103,8 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
         res = maxNR(ProfileErr1, start=pars[active], allpars=pars, times=times,
                     data=data, coef=coefs, lik=lik, proc=proc,
     	              in.meth=in.meth, control.in=control.in, sgn=-1, 
-                    active1=active, grad=ProfileDP1, print.level=control.out$print.level,
+                    active1=active, grad=ProfileDP1, 
+                    print.level=control.out$print.level,
                     iterlim=control.out$iterlim)
         npar = res$estimate
      }
@@ -246,12 +247,20 @@ Profile.GausNewt = function(pars,times,data,coefs,lik,proc,
     iter = 0
     fundif = 1
 
-    Jacobian = res0$gradient[,ind]
+
+    Jacobian = res0$gradient[,active]
     residual = res0$value
 
     gradnorm0 = mean(abs(crossprod(Jacobian, residual)))
     gradnorm1 = 1
     dcdp = c()
+
+    eigs = eigen(crossprod(Jacobian,Jacobian))$values
+    gam = -2*min(eigs[!(eigs==0)])
+    if(gam <0 ){ gam = -gam/4 }
+    eye = diag(rep(1,ncol(Jacobian)))
+
+#    gam = 0
 
     while( gradnorm1 > control$reltol & 
            fundif    > control$reltol & 
@@ -259,26 +268,33 @@ Profile.GausNewt = function(pars,times,data,coefs,lik,proc,
   
         iter = iter + 1
 
-        Dpars = lsfit(Jacobian, residual, intercept=FALSE)
-        Dpars = solve(crossprod(Jacobian), crossprod(Jacobian,residual))
+ #       Dpars = lsfit(Jacobian, residual, intercept=FALSE)
+        Dpars = solve(crossprod(Jacobian)+gam*eye, crossprod(Jacobian,residual))
     
         ntry = 0
         
         while(F1 >= F0 & 
               t(Dpars)%*%Dpars > control$reltol & 
               ntry < control$maxtry){
-            pars1[ind] = pars0[ind] - 0.5*Dpars
+              
+              
+            pars1[active] = pars0[active] - Dpars
             tres = ProfileSSE.AllPar(pars1, times, data, res0$coefs, lik, proc,
                                      in.meth, control.in, res0$dcdp, pars0,
                                      use.nls=FALSE)
             F1    = sum(tres$value^2)
-            Dpars = Dpars/2
+#           Dpars = Dpars/2
+            gam = gam*2
+            Dpars = solve(crossprod(Jacobian)+gam*eye, 
+                          crossprod(Jacobian,residual))
             ntry  = ntry + 1
         }
 
+        gam = gam/4
         res0      = tres
         dcdp      = tres$dcdp
-        gradnorm1 = abs(mean(t(res0$gradient[,ind])%*%res0$value))
+
+        gradnorm1 = abs(mean(t(res0$gradient[,active])%*%res0$value))
         fundif    = (F0-F1)/abs(F0)
 
         pars0     = pars1
@@ -457,8 +473,9 @@ ProfileErr = function(pars,allpars,times,data,coefs,lik,proc,in.meth = "house",
 
 
 # The following fixes a conflict that arises when using maxNR. 
-ProfileErr1 =    function(pars,allpars,times,data,coefs,lik,proc,in.meth = "house",
-        control.in=NULL,sgn=1,active1=1:length(allpars))
+ProfileErr1 =    function(pars,allpars,times,data,coefs,lik,proc,
+                          in.meth = "house",control.in=NULL,sgn=1,
+                          active1=1:length(allpars))
 {
   ProfileErr(pars,allpars,times,data,coefs,lik,proc,in.meth = "house",
         control.in=NULL,sgn=1,active=active1)
@@ -487,6 +504,8 @@ ProfileDP = function(pars, allpars, times, data, coefs, lik, proc,
     
     return(g)        
 }
+
+##################################################################
 
 ProfileDP1 = function(pars, allpars, times, data, coefs, lik, proc,
                      in.meth = "house", control.in=NULL, sgn=1, sumlik=1,
@@ -533,7 +552,7 @@ ProfileSSE = function(pars, allpars, times, data, coefs, lik, proc,
                         use.nls=use.nls, sgn=sgn)
   
     if(use.nls){
-#        attr(f,'gradient') = attr(f,'gradient')[,active]
+        attr(f,'gradient') = attr(f,'gradient')[,active]
     }
     else{
         f$gradient = f$gradient[,active,drop=FALSE]
