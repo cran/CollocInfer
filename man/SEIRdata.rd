@@ -22,4 +22,3 @@ Giles Hooker, Stephen P. Ellner, David Earn and Laura Roditi, 2010.
 "Parameterizing State-space Models for Infectious Disease Dynamics by Generalized Profiling: Measles in Ontario",
 Technical Report, Cornell University. 
 }
-\seealso{}

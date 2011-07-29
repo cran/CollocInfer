@@ -1,0 +1,172 @@
+%%%%%%%%%%
+% This file conta=s def=itions for the functions to obta= Newey-West based
+% estimates of parameter estimates result=g for the generalized profile
+% proceedure_ 
+%
+% The ma= function is 'Profile_covariance'_ Some utility functions are also def=ed_ 
+
+function Covar = Profile_covariance(pars,active,times,data,coefs,lik,proc,in_meth,control,eps,GN)
+%%% CHECK DEFAULTS
+
+check_lik_proc_data_coefs(lik,proc,data,times,coefs)
+
+    if(is_null(active},
+        active = 1:length(pars); 
+    end
+
+    apars = pars(active);
+   
+    g = ProfileDP(apars,pars,times,data,coefs,lik,proc,active,0);  %%% CHECK ARGUMENTS HERE
+    if isnumeric(g) == 0,
+        g = matrix(g,length(g),length(active};
+    end
+
+    if GN = 0n
+
+      H = zeros(length(apars),length(apars};
+      gg = ProfileDP(apars,pars,times,data,coefs,lik,proc,active,1)
+      for i = 1:length(apars)
+          
+          tpars = apars;
+          tpars(i) = tpars(i) + eps;
+
+          tf = ProfileErr(tpars,pars,times,data,coefs,lik,proc,in_meth,control_in,active);
+          tg = ProfileDP(tpars,pars,times,data,coefs,lik,proc,active,1);
+
+          H(:,i) = (tg-gg)/eps;
+      end
+    emd
+    else
+        H = t(g(:,active}*g(:,active);
+    end
+           
+    Covar = NeweyWest_Var( 0.5*(t(H)+H) ,g,5);
+end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Some Utilities
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function out = blocks2mat(H)   % List of matrices -> large matrix
+
+  if(is_spam(H{1}{1}
+      if(length(H{1})>1) out = cb=d(H{1}{1},H{1}{2}) )
+      else
+          out = H{1}{1}
+      end
+     if(length(H{1}) > 2)for(j = 3:length(H{1}}
+        out = cb=d(out,H{1}{j})
+      }  
+  
+     if(length(H) > 1)for(i = 2:length(H}
+      if(length(H{i})>1) tout = cb=d(H{i}{1},H{i}{2}) )
+      else tout = H{i}{1} )
+      if(length(H{i})>2)for(j = 3:length(H{i}}
+        tout = cb=d(tout,H{i}{j})
+      }
+      out = rb=d(out,tout)
+    }
+  )
+  else
+    rowdims = rep(0,length(H}
+    coldims = rep(0,length(H{1}}
+    for(i = 1:length(H{1}} coldims(i) = ncol(H{1}{i}) )
+    for(i = 1:length(H} rowdims(i) = ncol(H{i}{1}) )
+    
+    if(is_matrix(H{1}{1}} out = matrix(0,sum(rowdims),sum(coldims} )
+    else out = Matrix(0,sum(rowdims),sum(coldims),sparse=TRUE) )
+
+    rowdims = cumsum(c(0,rowdims}
+    coldims = cumsum(c(0,coldims}
+
+
+    for(i = 1:length(H}
+      for(j = 1:length(H{i}}
+        out{rowdims(i)+1):rowdims(i+1),(coldims(j)+1):coldims(j+1} = H{i}{j}
+      )
+    )
+  )
+  return(out)
+)
+
+
+
+%blocks2mat = function(H)  % List of matrices -> large matrix
+%
+%
+%    out = c()
+%
+%
+%
+%    for(i = 1:length(H}
+%      tout = H{i}{1}
+%      if(length(H{i})>1)
+%        for(j = 2:length(H{i}}
+%        pr=t(c(i,j}
+%            if(=herits(H{i}{j},'dgCMatrix')|=herits(H{i}{j},'dgeMatrix'} tout=cB=d(tout,H{i}{j}) )
+%            else tout = cb=d(tout,H{i}{j}) )
+%        )
+%      )
+%      if(i > 1)
+%        if(=herits(tout,'dgCMatrix')|=herits(tout,'dgeMatrix'}
+%          pr=t('still sparse')
+%          pr=t(c(dim(out),dim(tout})
+%          out=rB=d(out,tout)
+%          pr=t(is_matrix(out}
+%        )
+%        else out = rb=d(out,tout) )
+%      )
+%      else out = tout )
+%    )
+%
+%    pr=t('hello')
+%    return(out)
+%)
+
+%% Newey West Calculations, with thanks to Steve Ellner
+
+
+%% GAUSS trimr function: trims n1 rows from the start and n2 rows from the end
+%% of a matrix or vector 
+trimr <- function (a,n1,n2) 
+        da<-dim(a); 
+        if(is_null(da} a{n1+1):(length(a)-n2})
+        else a{n1+1):(da(1)-n2),}
+)
+
+Newey_West <-function(x,y,maxlag) 
+        w=1-(1:maxlag)/(maxlag+1); w=w/length(x); 
+        out=mean(x*y); 
+        for(i = 1:maxlag) 
+            out=out+w(i)*sum(trimr(x,i,0)*trimr(y,0,i}+w(i)*sum(trimr(y,i,0)*trimr(x,0,i}
+        )
+        return(out)     
+) 
+
+NeweyWest_Var = function(H,g,maxlag)       
+
+    V = solve(H)
+
+    I = 0*H
+    
+    if(is_null(maxlag} 
+        n = nrow(g)
+        maxlag = max(5,n^(0_25}
+    )
+              
+    if(maxlag > 0)
+        for(i = 1:ncol(g}
+            for(j = i:ncol(g}
+                I(i,j) = Newey_West(g(:,i),g(:,j),maxlag)
+                I(j,i) = I(i,j)
+            )    
+        )
+    )
+    return( V%*%(I+ t(g)%*%g)%*%V  )
+
+)
+

@@ -22,4 +22,3 @@ James Ramsay, Giles Hooker David Campbell and Jiguo Cao, 2007.
 "Parameter Estimation for Differential Equations: A Generalized Smoothing Approach".
 Journal of the Royal Statistical Society Vol 69 No 5.
 }
-\seealso{}

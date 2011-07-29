@@ -26,7 +26,6 @@ SSE <- function(data,times,devals,pars,more)
 
     difs = data-fdevals
     difs[is.na(difs)] = 0       
-
     weights = checkweights(more$weights,more$whichobs,difs)
     f = apply( weights*difs^2, 1, sum )
     return(f)
@@ -200,10 +199,10 @@ d2SSE.dydp <- function(data,times,devals,pars,more)
 checkweights <- function(weights,whichrows,diffs){
   if(is.null(whichrows)){ whichrows = 1:nrow(diffs) }
   
-  if(is.null(weights)){ return(matrix(1,dim(diffs))) }
+  if(is.null(weights)){ return(matrix(1,nrow(diffs),ncol(diffs))) }   
+  else if( prod( dim(weights[whichrows,]) == dim(diffs)) ){ return(weights[whichrows,]) }
   else if( length(weights) == ncol(diffs)){ return( matrix(weights,nrow(diffs),ncol(diffs),byrow=TRUE)) }
   else if( length(weights[whichrows]) == nrow(diffs)){ return( matrix(weights,nrow(diffs),ncol(diffs),byrow=FALSE)) }
-  else if( prod( dim(weights[whichrows,]) == dim(diffs)) ){ return(weights[whichrows,]) }
   else if( ncol(weights[whichrows,]) > ncol(diffs) & nrow(weights) > nrow(diffs) ){
     warning('Dimension of weights does not match that of data')
     return( weights[whichrows[1:nrow(diffs)],1:ncol(diffs)] )

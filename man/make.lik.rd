@@ -2,6 +2,7 @@
 \alias{make.lik}
 \alias{make.SSElik}
 \alias{make.multinorm}
+\alias{pomp.dmeasure}
 \title{Observation Process Distribution Function}
 \description{Returns a list of functions that calculate the observation process distribution and its derivatives;
 designed to be used with the collocation inference functions. }
@@ -10,7 +11,6 @@ make.SSElik()
 
 make.multinorm()
 }
-\arguments{}
 \value{A list of functions that calculate the log observation distribution and its derivatives.
 \item{make.SSElik}{ calculates weighted squared error between predictions
 (given by \code{fn} in \code{more})  and observations}

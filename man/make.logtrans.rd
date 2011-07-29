@@ -9,17 +9,20 @@ objects so that the operate with the state defined on a log scale.}
 \usage{
 make.logtrans()
 
+make.exptrans()
+
 make.logstate.lik()
 
 make.exp.Cproc()
 
 make.exp.Dproc()
 }
-\arguments{}
 \value{A list of functions that calculate log transforms and derivatives in various contexts.
 
 \item{make.logtrans}{ modifies the right hand side of a differential equation and its
 derivatives for a loged state vector. }
+\item{make.exptrans}{ modfies a map from states to observations to a map from logged states
+to observations along with its derivatives. }
 \item{make.logstate.lik}{ modifies a \code{lik} object for state vectors given on the log scale. }
 \item{make.exp.Cproc}{ \code{Cproc} with the state given on the log scale.}
 \item{make.exp.Dproc}{ \code{Dproc} with the state given on the log scale.}

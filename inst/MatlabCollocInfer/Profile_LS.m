@@ -2,7 +2,7 @@ function Profile_LS_struct = ...
     Profile_LS(fn, times, data, coefs, allpars, basisvals, lambda, ...
                fdobj, more, obsweights, quadrature, active, ...
                in_method, options_in, out_method, options_out, ...
-               diffeps, poslik, posproc, discrete)
+               diffeps, poslik, posproc, discrete, likfn, likmore)
 %  The multivariate data = argment data are observations of one or more
 %  functional variables or processes at time points = argument times.
 %
@@ -116,13 +116,19 @@ function Profile_LS_struct = ...
 %                  are constrained to be positive.
 %  DISCRETE   ...  If nonzero, a discrete time model is used instead of
 %                  the default continuous time model.
+%  LIKFN      ...  A map from the values of the state variables to the mean
+%                  of the observations. Defaults to the identity if not
+%                  specified. 
+%  LIKMORE    ...  Any additional arguments that go into LIKFN. 
 
-%  Last modified 8 January 2011
+%  Last modified 28 July 2011
 
 if nargin < 7
     error('Less than seven arguments supplied.');
 end
 
+if nargin < 22 || isempty(likmore), likmore = [];       end
+if nargin < 21 || isempty(likfn), likfn = make_id;      end
 if nargin < 20 || isempty(discrete), discrete = 0;      end
 if nargin < 19 || isempty(posproc),  posproc  = 0;      end
 if nargin < 18 || isempty(poslik),   poslik   = 0;      end
@@ -178,7 +184,7 @@ end
 [lik, proc, coefs] = ...
             LS_setup(fn, times, coefs, basisvals, lambda, ...
                      fdobj, more, obsweights, quadrature, ...
-                     diffeps, poslik, posproc, discrete);
+                     diffeps, poslik, posproc, discrete, likfn, likmore);
                            
 %  Select optimization method and optimize with respect to parameters
 

@@ -2,6 +2,7 @@
 \alias{make.transfer}
 \alias{make.id}
 \alias{make.exp}
+\alias{make.exptrans}
 \alias{make.genlin}
 \alias{make.fhn}
 \alias{make.Henon}
@@ -17,6 +18,8 @@ make.id()
 
 make.exp()
 
+make.exptrans()
+
 make.genlin()
 
 make.fhn()
@@ -28,8 +31,6 @@ make.SEIR()
 make.NS()
 
 chemo.fun(times,y,p,more=NULL)
-
-pomp.skeleton(times,y,p,more)
 }
 \arguments{
 All the functions 
@@ -38,7 +39,7 @@ created by \code{make...} functions, require the arguments needed by  \code{chem
 \item{y}{ values of the state at the evaluation times }
 \item{p}{ parameters to be used }
 \item{more}{ a list of additional arguments, in this case \code{NULL}, for 
-\code{pomp.sekelton}, \code{more} should be a list containing a \code{pomp} object
+\code{pomp.sekelton} and \code{pomp.dmeasure}, \code{more} should be a list containing a \code{pomp} object
 in the element \code{pomp.obj}. }
 }
 \value{A list of functions that calculate the transform and its derivatives,

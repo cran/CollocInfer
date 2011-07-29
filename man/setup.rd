@@ -8,7 +8,8 @@ and multinormal processes.}
 \usage{
 LS.setup(pars,coefs=NULL,fn,basisvals=NULL,lambda,fd.obj=NULL,
         more=NULL,data=NULL,weights=NULL,times=NULL,quadrature=NULL,eps=1e-6,
-        posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
+        posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE,
+        likfn = make.id(), likmore = NULL)
 
 multinorm.setup(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.obj=NULL,
         more=NULL,data=NULL,times=NULL,quadrature=NULL,eps=1e-6,posproc=FALSE,
@@ -28,11 +29,11 @@ It should return a matrix of the same dimension of \code{x} giving the right han
 If \code{fn} is given as a single function, its derivatives are estimated by finite-differencing with
 stepsize \code{eps}. Alternatively, a list can be supplied with elements:
 \itemize{
-  \item{fn}{Function to calculate the right hand side should accept a matrix of state values at .}
-  \item{dfdx}{Function to calculate the derivative with respect to \code{x}}
-  \item{dfdp}{Function to calculate the derivative with respect to \code{p}}
-  \item{d2fdx2}{Function to calculate the second derivative with respect to \code{x}}
-  \item{d2fdxdp}{Function to calculate the second derivative with respect to \code{x} and \code{p}
+  \item{fn}{ Function to calculate the right hand side should accept a matrix of state values at .}
+  \item{dfdx}{ Function to calculate the derivative with respect to \code{x}}
+  \item{dfdp}{ Function to calculate the derivative with respect to \code{p}}
+  \item{d2fdx2}{ Function to calculate the second derivative with respect to \code{x}}
+  \item{d2fdxdp}{ Function to calculate the second derivative with respect to \code{x} and \code{p}
 }}
 These functions take the same arguments as \code{fn} and should output multidimensional arrays with
 the dimensions ordered according to time, state, deriv1, deriv2; here derivatives with respect to \code{x}
@@ -44,9 +45,9 @@ interfaced to \code{CollocInfer} through \code{pomp.skeleton} using a finite dif
 \item{basisvals}{Values of the collocation basis to be used. This can either be a basis object from the \code{fda} package,
 or a list elements:
 \itemize{
-  \item{bvals.obs}{A matrix giving the values of the basis at the observation times}
-  \item{bvals}{A matrix giving the values of the basis at the quadrature times}
-  \item{dbvals}{A matrix giving the derivative of the basis at the quadrature times}
+  \item{bvals.obs}{ A matrix giving the values of the basis at the observation times}
+  \item{bvals}{ A matrix giving the values of the basis at the quadrature times}
+  \item{dbvals}{ A matrix giving the derivative of the basis at the quadrature times}
 }
 For discrete systems, it may also be specified as a matrix, in which case \code{bvals$bvals} is obtained by deleting the last row
 and \code{bvals$dbvals} is obtained by deleting the first/  
@@ -75,8 +76,14 @@ on the log scale \code{TRUE}, this is an alternative to taking the log of the da
 \item{discrete}{ Is this a discrete or continuous-time system?}
 \item{names}{ The names of the state variables if not given by the column names of \code{coefs}.}
 \item{sparse}{ Should sparse matrices be used for basis values? This option can save memory when 
-\code{ProfileGausNewt} and \code{SplineEstNewtRaph} are called. Otherwise sparse matrices will be converted to 
-full matrices and this can slow the code down.}
+\code{ProfileGausNewt} and \code{SplineEstNewtRaph} are called. Otherwise sparse matrices will be
+converted to  full matrices and this can slow the code down.}
+\item{likfn}{ Defines a map from the trajectory to the observations. This should be in the same form as
+\code{fn}. If a function is given, derivatives are estimated by finite differencing, otherwise a list
+is expected to provide the same derivatives as \code{fn}. If \code{poslik=TRUE}, the states are
+exponentiated before the \code{likfn} is evaluated and the derivatives are updated to account for this.
+Defaults to the identity transform. }
+\item{likmore}{ A list containing additional inputs to \code{likfn} if needed, otherwise set to \code{NULL} }
 }
 \value{A list with elements
 \item{coefs}{Starting values for \code{coefs}}

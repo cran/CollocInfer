@@ -9,7 +9,6 @@ make.cvar()
 
 make.var.SEIR()
 }
-\arguments{}
 \value{A list of functions that calculate a variance function and its derivatives,
 in a form compatible with the collocation inference functions.
 

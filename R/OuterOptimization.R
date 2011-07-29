@@ -88,7 +88,7 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
                      data=data, coef=coefs, lik=lik, proc=proc,
     	               in.meth=in.meth, 
                      control.in=control.in, control=control.out,
-                     gr=ProfileDP, active=active)
+                     gradient=ProfileDP, active=active)
         npar = res$par
     }
 
@@ -259,7 +259,7 @@ Profile.GausNewt = function(pars,times,data,coefs,lik,proc,
   
         iter = iter + 1
 
-        Dpars = lsfit(Jacobian, residual, int=FALSE)
+        Dpars = lsfit(Jacobian, residual, intercept=FALSE)
         Dpars = solve(crossprod(Jacobian), crossprod(Jacobian,residual))
     
         ntry = 0

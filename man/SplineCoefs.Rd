@@ -66,4 +66,3 @@ are given in dimensions before those that give derivatives with respect to param
 \details{\code{SplineEst.NewtRaph} performs a simple Newton-Raphson estimate for the optimal value of the coefficients.
 This estimate lacks the convergence checks of other estimation packages, but may yeild a fast solution when needed.}
 \seealso{inneropt, smooth.LS, smooth.Cproc, smooth.Dproc}
-\examples{}

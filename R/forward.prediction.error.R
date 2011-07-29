@@ -21,7 +21,7 @@ forward.prediction.error = function(times,data,coefs,lik,proc,pars,whichtimes=NU
       y0 = traj[whichtimes[[i]][1],]
       ts = c(times[whichtimes[[i]]])
   
-      parms = list(pars=pars,proc=proc)
+      parms = list(pars=pars,proc=proc$more)
       out = lsoda(y=y0,times=ts,func=oderhs,parms=parms)
 
       ptraj = rbind(ptraj,out[2:nrow(out),2:ncol(out)])
@@ -29,10 +29,6 @@ forward.prediction.error = function(times,data,coefs,lik,proc,pars,whichtimes=NU
       pts  =  c(pts,times[whichtimes[[i]][-1]])
       whichobs = c(whichobs,whichtimes[[i]][-1])
   }
-
- # print(dim(pdata))
- # print(length(whichobs))
- # print(dim(lik$more$more$weights[whichobs,]))
 
   lik$more$whichobs = whichobs
   return(sum(lik$fn(pdata,pts,ptraj,pars,lik$more)))

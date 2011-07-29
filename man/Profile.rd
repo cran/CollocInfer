@@ -9,7 +9,8 @@ Profile.LS(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='nls',
                         control.in,control.out,eps=1e-6,active=NULL,posproc=FALSE,
-                        poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
+                        poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE,
+                        likfn = make.id(), likmore = NULL)
 
 Profile.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
                         fd.obj=NULL,more=NULL,quadrature=NULL,
@@ -83,6 +84,12 @@ taken to be the value at the next time point. }
 \item{sparse}{ Should sparse matrices be used for basis values? This option can save memory when 
 \code{ProfileGausNewt} and \code{SplineEstNewtRaph} are called. Otherwise sparse matrices will be converted to 
 full matrices and this can slow the code down.}
+\item{likfn}{ Defines a map from the trajectory to the observations. This should be in the same form as
+\code{fn}. If a function is given, derivatives are estimated by finite differencing, otherwise a list
+is expected to provide the same derivatives as \code{fn}. If \code{poslik=TRUE}, the states are
+exponentiated before the \code{likfn} is evaluated and the derivatives are updated to account for this.
+Defaults to the identity transform. }
+\item{likmore}{ A list containing additional inputs to \code{likfn} if needed, otherwise set to \code{NULL} }
 }
 \value{A list with elements
 \item{pars}{Optimized parameters}

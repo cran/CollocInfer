@@ -85,4 +85,3 @@ These need to be removed manually when the optimization is finished. \code{optco
 the optimal value of \code{coefs} for plotting the estimated trajectories.
 }
 \seealso{outeropt, Profile.LS, Profile.multinorm, LS.setup, multinorm.setup}
-\examples{}

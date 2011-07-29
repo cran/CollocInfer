@@ -1,14 +1,16 @@
 Smooth.LS <- function(fn, data, times, pars, coefs=NULL, basisvals=NULL,
                        lambda,fd.obj=NULL,more=NULL,weights=NULL,
 	                     quadrature=NULL, in.meth='nlminb', control.in=list(), eps=1e-6,
-                       posproc=FALSE, poslik=FALSE, discrete=FALSE, names=NULL, sparse=FALSE)
+                       posproc=FALSE, poslik=FALSE, discrete=FALSE, names=NULL, sparse=FALSE,
+                       likfn = make.id(), likmore = NULL)
 {
       
     dims = dim(data)
 
     profile.obj = LS.setup(pars, coefs, fn, basisvals, lambda,fd.obj, more,
                             data, weights, times, quadrature, eps=1e-6, posproc,
-                            poslik, discrete, names=names, sparse=sparse)
+                            poslik, discrete, names=names, sparse=sparse,
+                            likfn=make.id(),likmore=NULL)
 
     lik   = profile.obj$lik
     proc  = profile.obj$proc
@@ -44,14 +46,16 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
                         fd.obj=NULL,more=NULL,weights=NULL,quadrature=NULL,
                         in.meth='nlminb',out.meth='nls',
                         control.in=list(),control.out=list(),eps=1e-6,
-                        active=NULL,posproc=FALSE,poslik=FALSE,discrete=FALSE,names=NULL,sparse=FALSE)
+                        active=NULL,posproc=FALSE,poslik=FALSE,discrete=FALSE,
+                        names=NULL,sparse=FALSE,likfn=make.id(),likmore=NULL)
 {
 #    browser()
     if(is.null(active)){ active = 1:length(pars) }
 
-    profile.obj = LS.setup(pars,coefs,fn,basisvals,lambda,fd.obj,more,
+    profile.obj = LS.setup(pars=pars,coefs=coefs,fn=fn,basisvals,lambda=lambda,fd.obj,more,
                            data,weights,times,quadrature,eps=1e-6,
-                           posproc,poslik,discrete,names,sparse)
+                           posproc,poslik,discrete,names,sparse,
+                           likfn=make.id(),likmore=NULL)
 
     dims = dim(data)
 
@@ -139,7 +143,8 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
 LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
                      more=NULL, data=NULL, weights=NULL, times=NULL,
                      quadrature=NULL, eps=1e-6, posproc=FALSE, poslik = FALSE, 
-                     discrete=FALSE, names=NULL, sparse=FALSE)
+                     discrete=FALSE, names=NULL, sparse=FALSE,
+                     likfn = make.id(), likmore = NULL)
 {
     colnames = names
 
@@ -166,6 +171,20 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
         colnames = colnames(coefs)
       }
     }
+    
+    if(is.null(coefs)){
+      if(!is.null(basisvals)){
+        if(is.basis(basisvals)) nbasis = basisvals$nbasis 
+        else if(is.matrix(basisvals)) nbasis = nrow(basisvals) 
+        else nbasis = nrow(basisvals$bvals.obs)
+        
+        if(!is.null(colnames)) coefs = matrix(0,nbasis,length(colnames))
+        else if(!is.null(data)) coefs = matrix(0,nbasis,ncol(data))
+        else if(!is.null(weights)) coefs = matrix(0,nbasis,nrow(weights))
+        else stop('Cannot determine the dimension of the state vector -- please provide
+            one of coefs, fd.obj or names')
+      }
+    } 
 
     #  --------------------------------------------------------------------
     #  Define list object LIK containing handles for functions for 
@@ -182,10 +201,34 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
     #  process to fit the data.  POS == 0 means no transformation, otherwise an
     #  exponential transformation is applied to provide a positive fit.
 
-    if(!poslik) 
-       lik$more = make.id()
-    else
-      lik$more = make.exp()
+    if(!poslik){                        # Map from states to obs
+      if(is.list(likfn)){               # All derivatives available analytically
+        lik$more = likfn
+        if(is.null(lik$more$more)){
+          lik$more$more = likmore
+        }
+      }
+      else{                             # Finite-difference for derivatives
+        lik$more = make.findif.ode()
+        lik$more$more = list(fn=likfn, more=likmore, eps=eps)
+      }
+    }
+    else{                               # States given on log scale
+      if(is.list(likfn)){               # Derivatives available analytically
+        lik$more = make.exptrans()
+        lik$more$more = likfn
+        if(is.null(lik$more$more$more)){
+          lik$more$more$more = likmore
+        }
+      }
+      else{                             # Finite-difference for derivatives
+        lik$more = make.findif.ode()
+        lik$more$more$fn = make.exptrans()$fn
+        lik$more$more$more = list(fn=likfn,more=likmore, eps=eps)
+      }
+    }
+
+
         
     #  --------------------------------------------------------------------
     #  Define list object PROC containing functions for evaluating the
@@ -200,29 +243,37 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
     if(is.list(fn)){
       procmore = fn
       procmore$more = more
-    }
-    else if(is.function(fn)){
-      procmore = make.findif.ode()
-      procmore$more$fn = fn
-      procmore$more$more = more
-      procmore$more$eps = eps
-    }          
-    else if(inherits(fn,'pomp')){
-      procmore = make.findif.ode()
-      procmore$more$fn = pomp.skeleton
-      procmore$more$eps = eps
-      procmore$more$more =  list(pomp.obj = fn)
+      findif=FALSE
     }
     else{
-      stop('fn must be either a list of functions or a function')
+      if(is.function(fn)){
+        temp.more = list(fn=fn,more=more,eps=eps)
+      }
+      else if(inherits(fn,'pomp')){
+         temp.more = list(fn=pomp.skeleton, more = list(pomp.obj=fn))
+      }
+      else{
+      stop('fn must be either a list of functions, a function or a pomp object')
+      }
+      
+      procmore = make.findif.ode()
+      if(posproc){
+        procmore$more = list(fn=make.logtrans()$fn,more=temp.more)
+      }
+      else{
+        procmore$more = temp.more
+      }
+      procmore$more$eps = eps
+      findif=TRUE
     }
+    
     
     #  Add  member MORE to PROC containing:
     #    PROCMORE if variables are not constrained to have positive values
     #    the list object returned by function MAKE_LOGTRANS with
     #    an additional member containing PROCMORE
 
-    if(!posproc) { 
+    if(!posproc | findif) {
       proc$more = procmore
     } else { 
       proc$more = make.logtrans()
@@ -268,21 +319,21 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
         }
         proc$more$weights = matrix(1/length(qpts),length(qpts)*nrep,ncol(coefs))
         #proc$more$weights = 1/length(qpts)
-        proc$more$qpts = qpts
+        proc$more$qpts = rep(qpts,nrep)
       }
       else{
        len = length(times)
        basis = eval.basis(times,basisvals,0)
        if(sparse){
-         proc$bvals = list(bvals = spam(basis[1:(len-1),]),
-                           dbvals= spam(basis[2:len,]))
+         proc$bvals = list(bvals = spam(diag(rep(1,nrep)) %x% basis[1:(len-1),]),
+                           dbvals= spam(diag(rep(1,nrep)) %x% basis[2:len,]))
        } else{
-         proc$bvals = list(bvals = basis[1:(len-1),],
-                           dbvals= basis[2:len,])       
+         proc$bvals = list(bvals =diag(rep(1,nrep)) %x%  basis[1:(len-1),],
+                           dbvals= diag(rep(1,nrep)) %x% basis[2:len,])       
        }
        proc$more$weights = matrix(1/(len-1),(len-1)*nrep,ncol(coefs))
        #proc$more$weights = 1/(len-1)
-       proc$more$qpts = times[1:(len-1)]
+       proc$more$qpts = rep(times[1:(len-1)],nrep)
        }
       
       
@@ -303,7 +354,7 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
         proc$more$weights = matrix(1/(nrow(basisvals)-1),
                                    nrow(basisvals)-1,ncol(coefs))
         #proc$more$weights = 1/(nrow(basisvals)-1)
-        proc$more$qpts = times[1:(length(times)-1)]
+        proc$more$qpts = rep(times[1:(length(times)-1)],nrep)
       }                                    
       else{     
         if(sparse){                                 
@@ -331,27 +382,37 @@ LS.setup = function(pars, coefs=NULL, fn, basisvals=NULL, lambda, fd.obj=NULL,
       }
     }
  
-    if( is.null(weights) ){
-      lik$more$weights = matrix(1,ncol(coefs))
-    }
-    else{
-      lik$more$weights = matrix(weights,nrow(lik$bvals)*nrep,ncol(coefs))
-    }
+
 
     if(!is.null(data)){
       if(length(dim(data))==2){
         if(nrep>1){stop('data dimensions must match coefficient dimensions')}
-        if(dim(data)[1] != length(times) | dim(data)[2]!= dim(coefs)[2]){
+        if(dim(data)[1] != length(times) ){
         stop('data dimensions, times and coefficient dimensions do not match')}
       }
       if(length(dim(data))==3){
-         if(dim(data)[2] != nrep | dim(data)[3]!=dim(coefs)[2] | 
-            dim(data)[1]!=length(times)){
+         if(dim(data)[2] != nrep | dim(data)[1]!=length(times)){
         stop('data dimensions, times and coefficient dimensions do not match')}
         data = matrix(data,dim(data)[1]*dim(data)[2],dim(data)[3])
         times = rep(times,nrep)
      }
     }
+    
+    if( is.null(weights) ){
+       if(!is.null(data)) lik$more$weights = matrix(1,nrow(data),ncol(data))
+       else  lik$more$weights=NULL
+    }
+    else{
+      if(length(dim(weights)) == 3)  weights = matrix(weights,dim(weights)[1]*dim(weights)[2],dim(weights)[3])
+
+      if(!is.null(data)){
+        weights =  checkweights(weights,NULL,data)
+      }
+      else if(length(dim(weights)) == 2)
+        lik$more$weights = matrix(weights,dim(weights)[1]*nrep,dim(weights)[2])
+      else lik$more$weights = weights
+    }
+    
 
  #   if(length(lambda)==1){ lambda = as.matrix(rep(lambda,ncol(coefs))) }
 

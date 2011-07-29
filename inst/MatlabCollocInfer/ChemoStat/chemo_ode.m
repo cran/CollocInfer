@@ -1,4 +1,6 @@
-function r = chemo_ode(times, y, p)
+function r = chemo_ode(times, y, p,more)
+    if nargin < 4, more = [];
+    
     p = exp(p);
     y = exp(y);
     r = y;

@@ -11,7 +11,6 @@ make.Cproc()
 
 make.SSEproc()
 }
-\arguments{}
 \value{A list of functions that the process distribution
 \item{make.Cproc}{ creates functions to evaluate the distribution of the derivative of
 the state vector given the current state for continuous-time systems.  }       

@@ -91,7 +91,7 @@ d2SSEproc.dc2 <- function(coefs,bvals,pars,more)
 
 #  H = array(0,c(rep(dim(bvals$bvals)[2],2),rep(dim(devals)[2],2)))
 
-  weights = checkweights(more$weights,more$whichobs,H1[,,1,drop=FALSE])
+  weights = checkweights(more$weights,more$whichobs,H1[,,1,drop=TRUE])
 
  H = list(len=dim(bvals$bvals)[2])
   for(i in 1:dim(devals)[2]){

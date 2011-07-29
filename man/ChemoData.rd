@@ -22,4 +22,3 @@ Yoshida, T.,  L. E. Jones, S. P. Ellner, G. F. Fussmann and N. G. Hairston, 2003
 "Rapid evolution drives ecological dynamics in a predator-prey system", Nature, 424,
 pp. 303-306.
 }
-\seealso{}

@@ -1,7 +1,7 @@
 function [lik, proc, coefs] = ...
     LS_setup(fn, times, coefs, basisvals, lambda, fdobj, ...
              more, obsweights, quadrature, ...
-             diffeps, poslik, posproc, discrete)
+             diffeps, poslik, posproc, discrete, likfn, likmore)
 %  LS_SETUP sets up the LIK, PROC and COEF objects for a CollocInfer
 %  analysis where squared error measures of fit to the data and equation
 %  are used.   In this common situation, the effort required of the user
@@ -51,12 +51,16 @@ function [lik, proc, coefs] = ...
 %                  are constrained to be positive.
 %  DISCRETE   ...  If nonzero, a discrete time model is used instead of
 %                  the default continuous time model.
+%  LIKFN      ...  A map from the values of the state variables to the mean
+%                  of the observations. Defaults to the identity if not
+%                  specified. 
+%  LIKMORE    ...  Any additional arguments that go into LIKFN. 
 
 %  Note:  the R version also inputs argument PARS, but only uses it to 
 %  get variable names.  This argument is left out here since Matlab
 %  cannot address array elements by name.
 
-%  Last modified 7 January 2011
+%  Last modified 28 July 2011
 
 if nargin < 3
     error('Number of arguments is less than three.');
@@ -66,6 +70,9 @@ end
 %             Define default values for the arguments
 %  ------------------------------------------------------------------------
 
+
+if nargin < 15 || isempty(likmore), likmore = [];       end
+if nargin < 14 || isempty(likfn), likfn = make_id;      end
 if nargin < 13, discrete   = 0;     end
 if nargin < 12, posproc    = 0;     end
 if nargin < 11, poslik     = 0;     end
@@ -126,18 +133,35 @@ lik = make_SSElik;
 
 %  Add the member MORE to LIK that defines the transformation of the 
 %  process to fit the data.  POS == 0 means no transformation, otherwise an
-%  exponential transformation is applied to provide a positive fit.
+%  exponential transformation is applied to provide a positive fit. 
 
 if poslik==0
-    lik.more = make_id;
-else
-    lik.more = make_exp;
+    if isstruct(likfn)      % likfn is a struct providing function handles
+        lik.more = likfn;  % to evaluate all derivatives
+        if isfield(lik.more,'more')==0, lik.more.more = likmore; end
+    else                              %likfn is a function with derivatives
+        lik.more = make.findif.ode;   % to be evaluated through finite differencing
+        lik.more.eps = eps;
+        lik.more.more.fn = likfn;
+        lik.more.more.more = likmore;
+    end
+else                         % same as above only we exponentiating the states
+    if isstruct(likfn)       % before mapping to observations. 
+        lik.more = make_exptrans;
+        lik.more.more = likfn;
+        if isfield(lik.more.more,'more')==0, lik.more.more.more = likmore; end
+    else
+        lik.more = make_findif_ode;
+        lik.more.more.fn = @exptrans_fun;
+        lik.more.more.eps = eps;
+        lik.more.more.more.fn = likfn;
+        lik.more.more.more.more = likmore;
+    end
 end
 
-%  Members MORE and WHICHOBS are referenced as arguments but 
+%  Member WHICHOBS is referenced as arguments but 
 %  usually not used
 
-lik.more.more     = [];   
 lik.more.whichobs = [];
 
 %  ------------------------------------------------------------------------
@@ -156,18 +180,33 @@ if isstruct(fn)
     %  differential equation and its derivatives
     procmore = fn;
     procmore.more = more;  %  contains any additional information req'd
+    findif = 0;
 elseif strcmp(class(fn), 'function_handle')
     %  Argument FN is a functional data object for evaluating only 
     %  the value of the right side of the differential equation.
     %  Required derivatives are computed by differencing.
-    %  Set up handles to the differencing code
-    procmore = make_findif_ode;  
+    
+    %  Here we create a temporary object so we can decide whether to 
+    %  represent the states on the log scale. If so we finite-difference
+    %  afterwards. 
     %  Put right side evaluation code as a member of slot more
-    procmore.more.fn   = fn;
+    tempmore.fn   = fn;
     %  Add any additional required information supplied in argument MORE
-    procmore.more.more = more;
-    %  Add an amount defining differences
-    procmore.more.eps  = diffeps;
+    tempmore.more = more;
+    
+    %  Call to use finite differencing functions. 
+    
+    procmore = make_findif_ode;
+    findif = 1;
+    
+    if posproc == 1                       % We need to account for a 
+        procmore.more.fn = @logtrans_fun; % log-state representation here
+        procmore.more.more = tempmore;    % so that we can finite difference
+    else                                  % later. 
+        procmore.more = tempmore;
+    end
+    
+    procmore.more.eps = diffeps; 
 else
     error('fn must be either a struct of function handles or a function');
 end
@@ -177,9 +216,9 @@ end
 %    the struct object returned by function MAKE_LOGTRANS with
 %    an additional member containing PROCMORE
 
-if posproc==0
-    proc.more = procmore;
-else
+if posproc==0 || findif == 1;   % If finite differencing, we've already
+    proc.more = procmore;       % accounted for representation on the log
+else                            % scale. 
     proc.more      = make_logtrans;
     proc.more.more = procmore;
 end
@@ -223,7 +262,7 @@ if isa_basis(basisvals)
         rangeval = getbasisrange(basisobj);
         params   = getbasispar(basisobj);
         knots = [rangeval(1), params, rangeval(2)];
-        qpts = knots(1:length(knots)-1) + diff(knots)/2;
+        qpts = [knots(1), knots(1:length(knots)-1) + diff(knots)/2, knots(length(knots))];
     else
         qpts = quadrature.qpts;
     end
@@ -294,7 +333,7 @@ end
 %  ------------------------------------------------------------------------
 
 if  isempty(obsweights)
-    obsweights = ones(1,nvar);
+        lik.more.weights = [];
 end
 
 if numel(obsweights) == nvar
@@ -303,7 +342,7 @@ if numel(obsweights) == nvar
 elseif all(size(obsweights) == [n,nvar])
     lik.more.weights = repmat(obsweights,nrep*nrep,1);
 else
-    error('Dimensions of observation OBSWEIGHTS is not correct.');
+    lik.more.weights = obsweights;
 end
 
 %  ------------------------------------------------------------------------

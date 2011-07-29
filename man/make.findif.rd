@@ -12,7 +12,6 @@ make.findif.loglik()
 
 make.findif.var()
 }
-\arguments{}
 \value{A list of functions that calculate the derivatives via finite differencing schemes. 
 
 \item{make.findif.ode}{ calculates finite differences of a transform.}

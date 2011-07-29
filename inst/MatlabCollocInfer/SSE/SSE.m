@@ -7,6 +7,7 @@ if ~isfield(more, 'more')
 end
 fdevals = more.fn(times, devals, pars, more.more);
 %  Define the values of the process at observation times
+
 difs = data - fdevals;
 %  if process is unobserved, data(i) is NaN, and so is difs(i)
 difs(isnan(difs)) = 0;

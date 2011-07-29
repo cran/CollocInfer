@@ -32,6 +32,4 @@
   Ramsay, James O., and Silverman, Bernard W. (2006), \emph{Functional
     Data Analysis, 2nd ed.}, Springer, New York.
 }
-\examples{
-}
 
