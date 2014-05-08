@@ -29,7 +29,7 @@ to observations along with its derivatives. }
 }
 \details{ All functions require \code{more} to specify the original object (ODE right hand side functions,
 definitions of \code{lik} and \code{proc} objects).}
-\seealso{LS.setup, Cproc.setup, Dproc.setup}
+\seealso{\code{\link{LS.setup}}, \code{\link{make.Cproc}}, \code{\link{make.Dproc}}}
 \examples{
 
 # Model the log of an SEIR process

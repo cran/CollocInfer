@@ -18,21 +18,21 @@ Smooth.multinorm(fn,data,times,pars,coefs=NULL,basisvals=NULL,var=c(1,0.01),
 \arguments{
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
 \itemize{
-  \item{times}{The times at which the RHS is being evaluated.}
-  \item{x}{The state values at those times.}
-  \item{p}{Parameters to be entered in the system.}
-  \item{more}{An object containing additional inputs to \code{fn}}
+  \item{times}{ The times at which the RHS is being evaluated.}
+  \item{x}{ The state values at those times.}
+  \item{p}{ Parameters to be entered in the system.}
+  \item{more}{ An object containing additional inputs to \code{fn}}
 }
 It should return a matrix of the same dimension of \code{x} giving the right hand side values.
 
 If \code{fn} is given as a single function, its derivatives are estimated by finite-differencing with
 stepsize \code{eps}. Alternatively, a list can be supplied with elements:
 \itemize{
-  \item{fn}{Function to calculate the right hand side should accept a matrix of state values at .}
-  \item{dfdx}{Function to calculate the derivative with respect to \code{x}}
-  \item{dfdp}{Function to calculate the derivative with respect to \code{p}}
-  \item{d2fdx2}{Function to calculate the second derivative with respect to \code{x}}
-  \item{d2fdxdp}{Function to calculate the second derivative with respect to \code{x} and \code{p}
+  \item{fn}{ Function to calculate the right hand side should accept a matrix of state values at .}
+  \item{dfdx}{ Function to calculate the derivative with respect to \code{x}}
+  \item{dfdp}{ Function to calculate the derivative with respect to \code{p}}
+  \item{d2fdx2}{ Function to calculate the second derivative with respect to \code{x}}
+  \item{d2fdxdp}{ Function to calculate the second derivative with respect to \code{x} and \code{p}
 }}
 These functions take the same arguments as \code{fn} and should output multidimensional arrays with
 the dimensions ordered according to time, state, deriv1, deriv2; here derivatives with respect to \code{x}
@@ -44,9 +44,9 @@ always precede derivatives with respect to \code{p}. }
 \item{basisvals}{Values of the collocation basis to be used. This can either be a basis object from the \code{fda} package,
 or a list elements:
 \itemize{
-  \item{bvals.obs}{A matrix giving the values of the basis at the observation times}
-  \item{bvals}{A matrix giving the values of the basis at the quadrature times}
-  \item{dbvals}{A matrix giving the derivative of the basis at the quadrature times}
+  \item{bvals.obs}{ A matrix giving the values of the basis at the observation times}
+  \item{bvals}{ A matrix giving the values of the basis at the quadrature times}
+  \item{dbvals}{ A matrix giving the derivative of the basis at the quadrature times}
 }}
 \item{lambda}{(\code{Smooth.LS} only) Penalty value trading off fidelity to data with fidelity to differential equations.}
 \item{var}{(\code{Smooth.multinorm}) A vector of length 2, giving  }
@@ -55,8 +55,8 @@ or a list elements:
 \item{weights}{(\code{Smooth.LS} only)  }
 \item{quadrature}{ Quadrature points, should contain two elements (if not NULL)
 \itemize{
-  \item{qpts}{Quadrature points; defaults to midpoints between knots}
-  \item{qwts}{Quadrature weights; defaults to normalizing by the length of \code{qpts}.   } 
+  \item{qpts}{ Quadrature points; defaults to midpoints between knots}
+  \item{qwts}{ Quadrature weights; defaults to normalizing by the length of \code{qpts}.   }
 }}
 \item{in.meth}{ Inner optimization function to be used, currently one of 'nlminb', 'MaxNR', 'optim' or 'SplineEst'.
 The last calls \code{SplineEst.NewtRaph}. This is fast but has poor convergence.  }
@@ -87,7 +87,7 @@ Defaults to the identity transform. }
 \item{times}{The vector of times at which the observations were made}
 }
 \details{These routines create \code{lik} and \code{proc} objects and call \code{inneropt}.}
-\seealso{inneropt, LS.setup, multinorm.setup, SplineCoefsErr}
+\seealso{\code{\link{inneropt}}, \code{\link{LS.setup}}, \code{\link{multinorm.setup}}, \code{\link{SplineCoefsErr}}}
 \examples{
 
 ###############################

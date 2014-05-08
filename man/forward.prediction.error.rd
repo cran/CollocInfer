@@ -26,4 +26,4 @@ forward.prediction.error(times,data,coefs,lik,proc,pars,whichtimes=NULL)
 estimation routines. The ordinary differential equation is solved starting from the starting
 times specified in \code{whichtimes} and measured at the corresponding measurement times. The error is then recorded.
 This should then be minimized by a grid search. }
-\seealso{profile.sse, ProfileSSE, outeropt}
+\seealso{ \code{\link{ProfileSSE}}, \code{\link{outeropt}}}

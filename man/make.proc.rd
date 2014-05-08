@@ -30,7 +30,7 @@ cacluates weighted sums of squared errors between derivatives and the prediction
 For \code{Cproc} and \code{Dproc} this should specify the distribution; for \code{SSEproc} it
 should specify the right hand side of a differential equation. 
 }
-\seealso{LS.setup, multinorm.setup}
+\seealso{\code{\link{LS.setup}}, \code{\link{multinorm.setup}}}
 \examples{
 
 # FitzHugh-Nagumo Equations

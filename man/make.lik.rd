@@ -36,7 +36,7 @@ make.multinorm()
 
 \code{make.SSElik} further requres \code{weights} giving weights to each observation.
 }
-\seealso{LS.setup, multinorm.setup}
+\seealso{\code{\link{LS.setup}}, \code{\link{multinorm.setup}}}
 \examples{
 
 # Straightforward sum of squares:

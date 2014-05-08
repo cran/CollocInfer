@@ -20,10 +20,10 @@ multinorm.setup(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.obj=NULL,
 \item{coefs}{ Vector giving the current estimate of the coefficients in the spline. }
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
 \itemize{
-  \item{times}{The times at which the RHS is being evaluated.}
-  \item{x}{The state values at those times.}
-  \item{p}{Parameters to be entered in the system.}
-  \item{more}{An object containing additional inputs to \code{fn} }}
+  \item{times}{ The times at which the RHS is being evaluated.}
+  \item{x}{ The state values at those times.}
+  \item{p}{ Parameters to be entered in the system.}
+  \item{more}{ An object containing additional inputs to \code{fn} }}
 It should return a matrix of the same dimension of \code{x} giving the right hand side values.
 
 If \code{fn} is given as a single function, its derivatives are estimated by finite-differencing with
@@ -65,8 +65,8 @@ dimension is taken to be replicates. The data are returned, if replicated they a
 \item{times}{ Vector observation times for the data. If the data are replicated, times are returned in a concatenated form.}
 \item{quadrature}{ Quadrature points, should contain two elements (if not NULL)
 \itemize{
-  \item{qpts}{Quadrature points; defaults to midpoints between knots}
-  \item{qwts}{Quadrature weights; defaults to normalizing by the length of \code{qpts}.   } 
+  \item{qpts}{ Quadrature points; defaults to midpoints between knots}
+  \item{qwts}{ Quadrature weights; defaults to normalizing by the length of \code{qpts}.   }
 }}
 \item{eps}{ Finite differencing step size, if needed. }
 \item{posproc}{ Should the state vector be constrained to be positive? If this is the case, the state is represented by
@@ -96,10 +96,10 @@ Defaults to the identity transform. }
 \code{lik} and \code{proc} objects for sum of squared errors and multivariate normal log likelihoods with
 nonlinear transfer functions describing the evolution of the state vector.
 \itemize{
-  \item{LS.setup}{Creates sum of squares functions}
-  \item{multinorm.setup}{Creates multinormal log likelihoods for a continuous-time system.}
+  \item{LS.setup}{ Creates sum of squares functions}
+  \item{multinorm.setup}{ Creates multinormal log likelihoods for a continuous-time system.}
 }}
-\seealso{inneropt, outeropt, Profile.LS, Profile.multinorm, Smooth.LS, Smooth.multinorm}
+\seealso{\code{\link{inneropt}}, \code{\link{outeropt}}, \code{\link{Profile.LS}}, \code{\link{Profile.multinorm}}, \code{\link{Smooth.LS}}, \code{\link{Smooth.multinorm}}}
 \examples{
 
 # FitzHugh-Nagumo

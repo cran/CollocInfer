@@ -35,10 +35,10 @@ chemo.fun(times,y,p,more=NULL)
 \arguments{
 All the functions 
 created by \code{make...} functions, require the arguments needed by  \code{chemo.fun}
-\item{times}{ the evaluation times}
-\item{y}{ values of the state at the evaluation times }
-\item{p}{ parameters to be used }
-\item{more}{ a list of additional arguments, in this case \code{NULL}, for 
+\item{times}{ Evaluation times}
+\item{y}{ Values of the state at the evaluation times }
+\item{p}{ Parameters to be used }
+\item{more}{ A list of additional arguments, in this case \code{NULL}, for
 \code{pomp.sekelton} and \code{pomp.dmeasure}, \code{more} should be a list containing a \code{pomp} object
 in the element \code{pomp.obj}. }
 }
@@ -99,7 +99,7 @@ the functional data object \code{rainfd}.
 \code{chemo.fun} Is a five-state predator-prey-resources model used as an example. It stands
 alone as a function and should be used with the \code{findif.ode} functions. 
 }
-\seealso{LS.setup, multinorm.setup}
+\seealso{\code{\link{LS.setup}}, \code{\link{multinorm.setup}}}
 \examples{
 
 # Observe the FitzHugh-Nagumo equations

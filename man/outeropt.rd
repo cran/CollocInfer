@@ -42,7 +42,7 @@ The routine creates
 temporary files 'curcoefs.tmp' and 'optcoefs.tmp' to update coefficients as \code{pars} evolves. These overwrite
 existing files of those names and are deleted before the function terminates.
 }
-\seealso{inneropt, Profile.LS, ProfileSSE, ProfileErr, LS.setup, multinorm.setup}
+\seealso{\code{\link{inneropt}}, \code{\link{Profile.LS}}, \code{\link{ProfileSSE}}, \code{\link{ProfileErr}}, \code{\link{LS.setup}}, \code{\link{multinorm.setup}}}
 \examples{
 
 \dontrun{

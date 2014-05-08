@@ -22,7 +22,7 @@ The last calls \code{SplineEst.NewtRaph}. This is fast but has poor convergence.
 \details{This minimizes the objective function defined by the addition of the \code{lik}
 and \code{proc} objectives with respect to the coefficients. A number of generic
 optimization routines can be used and some experimentation is recommended. }
-\seealso{outeropt, smooth.LS, smooth.Cproc, smooth.Dproc, LS.setup, multinorm.setup, SplineCoefsErr}
+\seealso{\code{\link{outeropt}}, \code{\link{Smooth.LS}},\code{\link{LS.setup}}, \code{\link{multinorm.setup}}, \code{\link{SplineCoefsErr}}}
 \examples{
 \dontrun{
 # FitzHugh-Nagumo Equations

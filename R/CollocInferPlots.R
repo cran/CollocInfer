@@ -4,7 +4,16 @@ CollocInferPlots = function(coefs,pars,lik,proc,times=NULL,data=NULL,
 {
   if(is.null(cols)){ cols = 1:ncol(coefs) }
 
-
+ # Look for repeates in times
+ movebacks = (1:(length(times)-1))[diff(times) < 0]
+ if(length(movebacks)>0){
+    for(i in seq(length(movebacks),1,-1)){
+        times = c(times[1:movebacks[i]],times[movebacks[i]],times[(movebacks[i]+1):length(times)])
+        data = rbind(data[1:movebacks[i],],rep(NA,ncol(data)),data[(movebacks[i]+1):nrow(data),])
+    }
+ }
+   
+  
 
  timevec = proc$more$qpts
 
@@ -16,6 +25,19 @@ CollocInferPlots = function(coefs,pars,lik,proc,times=NULL,data=NULL,
  ftraj = proc$more$fn(timevec,traj,pars,proc$more$more)
  
  otraj = lik$more$fn(timevec,traj,pars,lik$more$more)
+ 
+ # Look for repeats in timevec
+ 
+ movebacks = (1:(length(timevec)-1))[diff(timevec) < 0]
+ if(length(movebacks)>0){
+    for(i in seq(length(movebacks),1,-1)){
+        timevec = c(timevec[1:movebacks[i]],timevec[movebacks[i]],timevec[(movebacks[i]+1):length(timevec)])
+        traj = rbind(traj[1:movebacks[i],],rep(NA,ncol(traj)),traj[(movebacks[i]+1):nrow(traj),])
+        dtraj = rbind(dtraj[1:movebacks[i],],rep(NA,ncol(dtraj)),dtraj[(movebacks[i]+1):nrow(dtraj),])
+        ftraj = rbind(ftraj[1:movebacks[i],],rep(NA,ncol(ftraj)),ftraj[(movebacks[i]+1):nrow(ftraj),])
+        otraj = rbind(otraj[1:movebacks[i],],rep(NA,ncol(otraj)),otraj[(movebacks[i]+1):nrow(otraj),])
+    }
+ }
  
  
  

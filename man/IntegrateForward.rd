@@ -22,7 +22,7 @@ Specifically, it returns a list with elements
 }
 }
 
-\seealso{Profile.LS, Profile.multinorm}
+\seealso{\code{\link{Profile.LS}}, \code{\link{Profile.multinorm}}}
 \examples{
 proc = make.SSEproc()
 proc$more = make.fhn()

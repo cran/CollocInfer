@@ -41,7 +41,7 @@ given by the \code{proc} object.
 
 A number of optimization routines have been implemented in \code{FitMatchOpt}, some experimentation is advised.
 }
-\seealso{FitMatchErr, SplineCoefsErr, inneropt}
+\seealso{\code{\link{FitMatchErr}}, \code{\link{SplineCoefsErr}}, \code{\link{inneropt}}}
 \examples{
 
 data(FhNdata)

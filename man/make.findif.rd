@@ -23,7 +23,7 @@ the \code{Multinorm} functions.}
 \details{All these functions require the sepcification of \code{more$eps} to give the size of the
 finite differencing step. They also require \code{more} to specify the original object (ODE right hand side functions,
 definitions of \code{lik} and \code{proc} objects).}
-\seealso{LS.setup, multinorm.setup}
+\seealso{\code{\link{LS.setup}}, \code{\link{multinorm.setup}}}
 \examples{
 
 # Sum of squared errors with finite differencing to get right-hand-side derivatives

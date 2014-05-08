@@ -19,7 +19,7 @@ in a form compatible with the collocation inference functions.
 \details{\code{make.cvar} requires the specification of further elements in the list. In particular
 the element \code{more} should be a list containing
 }
-\seealso{make.multinorm}
+\seealso{\code{\link{make.multinorm}}}
 \examples{
 
 # Multivariate normal observation of the state vector.

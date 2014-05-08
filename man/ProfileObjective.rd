@@ -55,17 +55,17 @@ iteration. }
 \item{Profile.GausNewt}{Output of a simple Gaus-Newton iteration to optimizing the objective function when the
 observation likelihood takes the form of a sum of squared errors. Returns a list with the following elements:
 \itemize{
-  \item{pars}{The optimized value of the parameters.}
-  \item{in.res}{The result of the inner optimization.}
-  \item{value}{The value of the optimized sum of squared errors.}
+  \item{pars}{ The optimized value of the parameters.}
+  \item{in.res}{ The result of the inner optimization.}
+  \item{value}{ The value of the optimized sum of squared errors.}
 }}
 \item{ProfileSSE}{Output for the outer optimization when the observation likelihood is given by squared error. This is a list
 with the following elements
 \itemize{
-  \item{value}{The value of the outer optimization criterion.}
-  \item{gradient}{The derivative of \code{f} with respect to \code{pars}.}
-  \item{coefs}{The optimized value of \code{coefs} for the current value of \code{pars}.}
-  \item{dcdp}{The derivative of the optimized value of \code{coefs} at the current value of \code{pars}.}
+  \item{value}{ The value of the outer optimization criterion.}
+  \item{gradient}{ The derivative of \code{f} with respect to \code{pars}.}
+  \item{coefs}{ The optimized value of \code{coefs} for the current value of \code{pars}.}
+  \item{dcdp}{ The derivative of the optimized value of \code{coefs} at the current value of \code{pars}.}
 }}
 \item{ProfileErr}{The outer optimization criterion in the general case: the value of the observation likelihood at the profiled
 estimates of \code{coefs}.}
@@ -84,4 +84,4 @@ following temporary files:
 These need to be removed manually when the optimization is finished. \code{optcoefs.tmp} will contain
 the optimal value of \code{coefs} for plotting the estimated trajectories.
 }
-\seealso{outeropt, Profile.LS, Profile.multinorm, LS.setup, multinorm.setup}
+\seealso{\code{\link{outeropt}}, \code{\link{Profile.LS}}, \code{\link{Profile.multinorm}}, \code{\link{LS.setup}}, \code{\link{multinorm.setup}}}

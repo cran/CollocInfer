@@ -22,7 +22,7 @@ least-squares methods. }
 }
 \value{Returns a Newey-West estimate of the covariance matrix of the parameter estimates. }
 \details{Currently assumes a lag-5 auto-correlation among observation vectors. }
-\seealso{ProfileErr, ProfileSSE, Profile.LS, Profile.multinorm}
+\seealso{\code{\link{ProfileErr}}, \code{\link{ProfileSSE}}, \code{\link{Profile.LS}}, \code{\link{Profile.multinorm}}}
 \examples{
 
 # See example in Profile.LS

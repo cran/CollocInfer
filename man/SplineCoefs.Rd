@@ -44,16 +44,16 @@ iteration. }
 \value{
 \item{SplineEst.NewtRaph}{Returns a list that is the result of the optimization with elements
 \itemize{
-  \item{value}{The final objective criterion.}
-  \item{coefs}{The optimizing value of the coefficients.}
-  \item{g}{The gradient at the optimizing value.}
-  \item{H}{The Hessian at the optimizing value.}
+  \item{value}{ The final objective criterion.}
+  \item{coefs}{ The optimizing value of the coefficients.}
+  \item{g}{ The gradient at the optimizing value.}
+  \item{H}{ The Hessian at the optimizing value.}
 }}
 \item{SplineCoefsList}{Collates the gradient calculations and returns a list with elements
 \itemize{
-  \item{value}{Output of \code{SplineCoefsErr}}
-  \item{gradient}{Output of \code{SplineCoefsDC}}
-  \item{Hessian}{Output of \code{SplineCoefsDC2}}
+  \item{value}{ Output of \code{SplineCoefsErr}}
+  \item{gradient}{ Output of \code{SplineCoefsDC}}
+  \item{Hessian}{ Output of \code{SplineCoefsDC2}}
 }}
 \item{SplineCoefsErr}{The complete data log likelihood for the smooth; the inner optimization objective. }
 \item{SplineCoefsDC}{The derivative of \code{SplineCoefsErr} with respect to \code{coefs}.}
@@ -65,4 +65,4 @@ are given in dimensions before those that give derivatives with respect to param
 }
 \details{\code{SplineEst.NewtRaph} performs a simple Newton-Raphson estimate for the optimal value of the coefficients.
 This estimate lacks the convergence checks of other estimation packages, but may yeild a fast solution when needed.}
-\seealso{inneropt, smooth.LS, smooth.Cproc, smooth.Dproc}
+\seealso{\code{\link{inneropt}}, \code{\link{Smooth.LS}}}
