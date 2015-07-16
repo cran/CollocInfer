@@ -100,7 +100,7 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
         if(is.null(control.out$iterlim))    {control.out$iterlim     = 100 }
         if(is.null(control.out$reltol))     {control.out$reltol      = 1e-8}
     
-        res = maxNR(ProfileErr1, start=pars[active], allpars=pars, times=times,
+        res = maxLik::maxNR(ProfileErr1, start=pars[active], allpars=pars, times=times,
                     data=data, coef=coefs, lik=lik, proc=proc,
     	              in.meth=in.meth, control.in=control.in, sgn=-1, 
                     active1=active, grad=ProfileDP1, 
@@ -116,7 +116,7 @@ outeropt <- function(data, times, pars, coefs, lik, proc,
         if( is.null(control.out$maxit)) { control.out$maxit  = 100  }
         if( is.null(control.out$reltol)){ control.out$reltol = 1e-8 }
         
-        res = subplex(pars[active], ProfileErr, control=control.out,
+        res = subplex::subplex(pars[active], ProfileErr, control=control.out,
                       hessian=FALSE, allpars=pars, times=times, data=data,
                       coef=coefs, lik=lik, proc=proc,
     	                in.meth=in.meth, control.in=control.in, active=active)

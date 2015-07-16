@@ -75,7 +75,7 @@ inneropt <- function(data,times,pars,coefs,lik,proc,in.meth='nlminb',
         if( is.null(control.in$useHessian) ){ Hessian = SplineCoefsDC2 }
         else{ Hessian = NULL } 
     
-        res = maxNR(SplineCoefsErr,coefs,times=times,data=data,lik=lik,proc=proc,pars=pars,sgn=-1,
+        res = maxLik::maxNR(SplineCoefsErr,coefs,times=times,data=data,lik=lik,proc=proc,pars=pars,sgn=-1,
             grad=SplineCoefsDC,hess=Hessian,print.level=control.in$print.level,
             iterlim = control.in$iterlim)
 
@@ -88,7 +88,7 @@ inneropt <- function(data,times,pars,coefs,lik,proc,in.meth='nlminb',
         if(is.null(control.in$parscale)){ control.in$parscale = abs(coefs)}
         if(is.null(control.in$iterlim)){ control.in$iterlim = 100}
         
-        res = trust(SplineCoefsList,coefs,rinit=control.in$rinit,
+        res = trust::trust(SplineCoefsList,coefs,rinit=control.in$rinit,
                     rmax=control.in$rmax,parscale=control.in$parscale,
                     iterlim=control.in$iterlim,
                     times=time,data=data,lik=lik,proc=proc,pars=pars,sgn=1)

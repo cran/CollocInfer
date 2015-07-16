@@ -1,4 +1,11 @@
-import("Matrix","MASS","deSolve","fda")
+import("Matrix","MASS")
+importFrom("fda",is.basis,eval.basis,fd,is.fd,eval.fd)
 importFrom("spam",is.spam,spam)
+importFrom("deSolve",lsoda)
+importFrom("methods","is")
+importFrom("grDevices", "dev.new")
+importFrom("graphics", "abline", "legend", "par","matplot")
+importFrom("stats", "nlminb", "nls", "optim", "time")
+importFrom("utils", "read.table", "write.table")
 exportPattern("^[^\\.]")
 

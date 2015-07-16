@@ -52,9 +52,9 @@ Profile.LS <- function(fn,data,times,pars,coefs=NULL,basisvals=NULL,lambda,
     if(is.null(active)){ active = 1:length(pars) }
 
     profile.obj = LS.setup(pars=pars,coefs=coefs,fn=fn,basisvals,lambda=lambda,fd.obj,more,
-                           data,weights,times,quadrature,eps=1e-6,
+                           data,weights,times,quadrature,eps=eps,
                            posproc,poslik,discrete,names,sparse,
-                           likfn=make.id(),likmore=NULL)
+                           likfn=likfn,likmore=NULL)
 
     dims = dim(data)
     if(length(dims) ==2){ dims=c(dims[1],1,dims[2]) }

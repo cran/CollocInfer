@@ -41,7 +41,7 @@ FitMatchOpt <- function(coefs,which,pars,proc,meth='nlminb',control=list())
         if(is.null(control$print.level)){control$print.level = 2}
         if(is.null(control$iterlim)){control$iterlim = 1000}
         if(is.null(control$reltol)){control$reltol = 1e-12}
-        res = maxNR(FitMatchErr,coefs[,which],allcoefs=coefs,which=which,pars=pars,proc=proc,sgn=-1,
+        res = maxLik::maxNR(FitMatchErr,coefs[,which],allcoefs=coefs,which=which,pars=pars,proc=proc,sgn=-1,
             grad=FitMatchDC,hess=FitMatchDC2,print.level=control$print.level,
             iterlim = control$iterlim)
 
@@ -53,7 +53,7 @@ FitMatchOpt <- function(coefs,which,pars,proc,meth='nlminb',control=list())
         if(is.null(control$parscale)){ control$parscale = length(length(which)*nrow(coefs))}
         if(is.null(control$iterlim)){ control$iterlim = 100}
 
-        res = trust(FitMatchList,coefs[,which],rinit=control$rinit,rmax=control$rmax,parscale=control$parscale,iterlim=control$iterlim,
+        res = trust::trust(FitMatchList,coefs[,which],rinit=control$rinit,rmax=control$rmax,parscale=control$parscale,iterlim=control$iterlim,
           allcoefs=coefs,which=which,pars=pars,proc=proc)
 
         ncoefs = matrix(res$argument,length(which),length(res$estimate)/length(which))

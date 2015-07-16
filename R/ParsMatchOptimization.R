@@ -38,7 +38,7 @@ ParsMatchOpt <- function(pars,coefs,proc,active=1:length(pars),meth='nlminb',con
         if(is.null(control$print.level)){control$print.level = 2}
         if(is.null(control$iterlim)){control$iterlim = 100}
         if(is.null(control$reltol)){control$reltol = 1e-8}
-        res = maxNR(ParsMatchErr,pars[active],coefs=coefs,proc=proc,activePar=active,allpars=pars,sgn=-1,
+        res = maxLik::maxNR(ParsMatchErr,pars[active],coefs=coefs,proc=proc,activePar=active,allpars=pars,sgn=-1,
             grad=ParsMatchDP,print.level=control$print.level,
             iterlim = control$iterlim)
 
@@ -51,7 +51,7 @@ ParsMatchOpt <- function(pars,coefs,proc,active=1:length(pars),meth='nlminb',con
         if(is.null(control$parscale)){ control$parscale = abs(pars[active]) }
         if(is.null(control$iterlim)){ control$itelim = 100}
 
-        res = trust(ParsMatchList,pars[active],rinit=control$rinit,rmax=control$rmax,parscale=control$parscale,iterlim=control$iterlim,
+        res = trust::trust(ParsMatchList,pars[active],rinit=control$rinit,rmax=control$rmax,parscale=control$parscale,iterlim=control$iterlim,
           coefs=coefs,proc=proc,active=active,allpars=pars)
         npars = res$argument
      }
