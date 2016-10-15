@@ -1,9 +1,9 @@
 d41d8cd98f00b204e9800998ecf8427e *CHANGELOG
-49e8b59b4c384a4f16a516a1ae27a75c *DESCRIPTION
+a6d560396d395b3ff041319dd1a37d26 *DESCRIPTION
 4a4d24e18f202fc9f08b7bc102f442b1 *NAMESPACE
 554cc83b33d2800eb383ad67e18241b6 *NEWS
 9c8de96aaa9fe1d32b251412703db46e *R/Chemo.R
-394e57e7b82421384c705179794a7476 *R/CollocInferPlots.R
+358588daa9e541594ff8e65b177fea23 *R/CollocInferPlots.R
 dd5e2cdd59b53703898b1784896f97bc *R/Cproc.R
 d4d967f1c6566e8ebc26040aa7dbe6a5 *R/Diagnostics.R
 b0e485aa5efb1a17748276dd752f1ada *R/Dproc.R
@@ -346,7 +346,7 @@ dd9532decb15d3aa1c277c858d19d720 *inst/trymcmc2.r
 0752e38bdbcc4d794677855abb4ac66b *man/ChemoRMData.rd
 941e42bc0d1d824eda71b29fb750a5ff *man/CollocInfer-internal.rd
 c44267dbec943f88666378aac93235e2 *man/CollocInfer-package.rd
-085d7126595c1b0c5b491f737f4f2e36 *man/CollocInferPlots.rd
+eadd9a3eac266934a1ab86748c264ab9 *man/CollocInferPlots.rd
 b9ec72f34ca5d993e316f46f3a0d6614 *man/FhNdata.rd
 11142de7ee342cc8760dff768f2f98fd *man/FhNest.rd
 37e1fd598825b0263c3cda1d63d01dc7 *man/FitMatch.rd

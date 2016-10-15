@@ -1,6 +1,6 @@
 CollocInferPlots = function(coefs,pars,lik,proc,times=NULL,data=NULL,
       cols=NULL,datacols=NULL,datanames=NULL,ObsPlot=TRUE,DerivPlot=TRUE,
-      cex.axis=1.5,cex.lab=1.5,cex=1.5,lwd=2)
+      DerivResid=TRUE,newplot=FALSE,cex.axis=1.5,cex.lab=1.5,cex=1.5,lwd=2)
 {
   if(is.null(cols)){ cols = 1:ncol(coefs) }
 
@@ -48,7 +48,7 @@ CollocInferPlots = function(coefs,pars,lik,proc,times=NULL,data=NULL,
     else{ datacols = 1:ncol(otraj) }
   }
   
-  dev.new()
+  if(newplot){ dev.new() }
   if(cex.lab > 1.5){ par(mar=c(5,5,1,1)) }
   matplot(timevec,otraj,type='l',lwd=lwd,xlab='time',ylab='Observations',
         cex.lab=cex.lab,cex.axis=cex.axis,col=datacols)
@@ -61,15 +61,16 @@ CollocInferPlots = function(coefs,pars,lik,proc,times=NULL,data=NULL,
  }
   
  if(DerivPlot){
-  dev.new()
+  if(newplot){ dev.new()  }
   if(cex.lab>1.5){par(mar=c(5,5,1,1))}
   matplot(timevec,ftraj,type='l',lwd=lwd,xlab='time',ylab='f(x): -, dx: --',
         cex.lab=cex.lab,cex.axis=cex.axis,col=cols,lty=1) 
   matplot(timevec,dtraj,type='l',lwd=lwd,lty=2,add=TRUE,col=cols)
   abline(h = 0)
   legend(x='topright',legend=proc$more$names,lwd=2,lty=1,col=cols)
- 
-  dev.new()
+ }
+ if(DerivResid){
+  if(newplot){ dev.new()  }
   if(cex.lab>1.5){par(mar=c(5,5,1,1))}
   par(mfrow=c(2,1))
   matplot(timevec,dtraj-ftraj,type='l',lwd=lwd,xlab='time',ylab='dx-f(x)',
