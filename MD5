@@ -1,5 +1,5 @@
 d41d8cd98f00b204e9800998ecf8427e *CHANGELOG
-a6d560396d395b3ff041319dd1a37d26 *DESCRIPTION
+ee1b4bf30b147d3f0aedd30c17b31bd9 *DESCRIPTION
 4a4d24e18f202fc9f08b7bc102f442b1 *NAMESPACE
 554cc83b33d2800eb383ad67e18241b6 *NEWS
 9c8de96aaa9fe1d32b251412703db46e *R/Chemo.R
@@ -58,6 +58,7 @@ f3c2b09d53df19cd97c7c9d7240de42f *demo/HenonEx.r
 d0a31dd446a7a268bc42507c16f1fe6f *demo/OldDemo/RMEx.r
 cc45849b6311e40cf8b0ebec05bbeac8 *demo/RMEx.r
 5ffe1a4903b1a3d55e577d22aa59dde3 *demo/SEIREX.r
+7a5c78fca741013a5ff70db38e96de81 *inst/CITATION
 1b49995a890207903719316d76947bc7 *inst/CollocInferManual.pdf
 fb2d3d6c894dd952ab2f47b2ae7d5e8e *inst/Devel.Examples/ChemoEx2.r
 07eccd0600523365011d88c8577bcd9c *inst/Devel.Examples/FhN.inputEx.R
