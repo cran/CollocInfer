@@ -20,7 +20,7 @@ the state vector given the current state for discrete-state systems.  }
 cacluates weighted sums of squared errors between derivatives and the prediction from the current state.}
 }
 \details{All functions require \code{more} to specify this distribution. This should be a list containing
-\itemize{
+\describe{
 \item{\code{fn}}{ The distribution specified.}
 \item{\code{dfdx}}{ The derivative of \code{fn} with respect to states.}
 \item{\code{dfdp}}{ The derivative of \code{fn} with respect to parameters. }

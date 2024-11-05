@@ -1,12 +1,12 @@
 Package: CollocInfer
-Version: 1.0.4
-Date: 2016-10-14
+Version: 1.0.5
+Date: 2024-11-04
 Title: Collocation Inference for Dynamic Systems
-Author: Giles Hooker <gjh27@cornell.edu>,
-         Luo Xiao <lx42@cornell.edu>,
-       James Ramsay <ramsay@psych.mcgill.ca>
-Maintainer: Giles Hooker <gjh27@cornell.edu>
-Depends: R (>= 2.4.0), fda
+Authors@R: c(person(given="Giles",family="Hooker",email="ghooker@wharton.upenn.edu",role=c("aut","cre")),
+         person(given="Luo",family="Xiao",email="lxiao5@ncsu.edu",role="aut"),
+         person(given="James",family="Ramsay",email="ramsay@psych.mcgill.ca", role="ctb"))
+Maintainer: Giles Hooker <ghooker@wharton.upenn.edu>
+Depends: R (>= 4.3.0), fda
 Imports: MASS, Matrix, spam, deSolve, methods
 Suggests: pomp, SparseM, subplex, trust, maxLik
 Description: These functions implement collocation-inference
@@ -14,9 +14,12 @@ Description: These functions implement collocation-inference
     They provide model-based smoothing, gradient-matching,
     generalized profiling and forwards prediction error methods.
 License: GPL (>= 2)
-URL: http://www.bscb.cornell.edu/~hooker
+URL: http://www.gileshooker.com
 LazyData: true
 NeedsCompilation: no
-Packaged: 2016-11-07 00:02:53 UTC; gjh27
+Packaged: 2024-11-05 04:08:20 UTC; giles
+Author: Giles Hooker [aut, cre],
+  Luo Xiao [aut],
+  James Ramsay [ctb]
 Repository: CRAN
-Date/Publication: 2016-11-07 08:12:33
+Date/Publication: 2024-11-05 08:50:01 UTC

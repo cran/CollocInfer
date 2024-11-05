@@ -17,7 +17,7 @@ make.multinorm()
 \item{make.Multinorm}{ calculates a multivariate normal distribution.}
 }
 \details{These functions require \code{more} to be a list with elements:
-\itemize{
+\describe{
 \item{\code{fn}}{ The transform function of the states to observations, or to their derivatives.}
 \item{\code{dfdx}}{ The derivative of \code{fn} with respect to states.}
 \item{\code{dfdp}}{ The derivative of \code{fn} with respect to parameters. }
@@ -26,7 +26,7 @@ make.multinorm()
 }
 
 \code{make.Multinorm} further requires:
-\itemize{
+\describe{
 \item{\code{var.fn}}{ The variance given in terms of states and parameters. }
 \item{\code{var.dfdx}}{ The derivative of \code{var.fn} with respect to states.}
 \item{\code{var.dfdp}}{ The derivative of \code{var.fn} with respect to parameters. }

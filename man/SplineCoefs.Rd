@@ -33,7 +33,7 @@ SplineCoefsDCDP(coefs,times,data,lik,proc,pars,sgn=1)
 \item{pars}{ Parameters to be used for the processes. }
 \item{sgn}{ Is the minimizing (1) or maximizing (0)? }
 \item{control}{ A list giving control parameters for Newton-Raphson optimization. It should contain
-\itemize{
+\describe{
   \item{reltol}{ Relative tollerance criterion for the gradient and improvement before termination. }
   \item{maxit}{ Maximum number of iterations. }
   \item{maxtry}{ Maximum number of halving-steps to try before declaring no improvement is possible. }
@@ -43,14 +43,14 @@ iteration. }
 }
 \value{
 \item{SplineEst.NewtRaph}{Returns a list that is the result of the optimization with elements
-\itemize{
+\describe{
   \item{value}{ The final objective criterion.}
   \item{coefs}{ The optimizing value of the coefficients.}
   \item{g}{ The gradient at the optimizing value.}
   \item{H}{ The Hessian at the optimizing value.}
 }}
 \item{SplineCoefsList}{Collates the gradient calculations and returns a list with elements
-\itemize{
+\describe{
   \item{value}{ Output of \code{SplineCoefsErr}}
   \item{gradient}{ Output of \code{SplineCoefsDC}}
   \item{Hessian}{ Output of \code{SplineCoefsDC2}}

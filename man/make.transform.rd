@@ -2,7 +2,6 @@
 \alias{make.transfer}
 \alias{make.id}
 \alias{make.exp}
-\alias{make.exptrans}
 \alias{make.genlin}
 \alias{make.fhn}
 \alias{make.Henon}
@@ -17,8 +16,6 @@
 make.id()
 
 make.exp()
-
-make.exptrans()
 
 make.genlin()
 
@@ -54,7 +51,7 @@ in a form compatible with the collocation inference functions.
 }
 \details{\code{make.genlin} requires the specification of further elements in the list. In particular
 the element \code{more} should be a list containing
-\itemize{
+\describe{
   \item{\code{mat}}{ a matrix defining the linear transform before any parameters are added.
 This may be all zero, but it may also specify fixed elements, if desired. }
   \item{\code{sub}}{ a k-by-3 matrix indicating which parameters should be entered into
@@ -70,7 +67,7 @@ parameter values.}
 
 \code{make.diagnostics} estimates forcing-function diagnostics as in Hooker, 2009 for 
 goodness-of-fit assessment. It requires
-\itemize{
+\describe{
   \item{\code{psi}}{ Values of a basis expansion for forcing functions at the quadrature points. }
   \item{\code{which}}{ Which states are to be forced? }
   \item{\code{fn}, \code{dfdx}, \code{d2fdx2}}{ Functions and derivatives as would be used to estimate 
@@ -81,7 +78,7 @@ goodness-of-fit assessment. It requires
 \code{make.SEIR} estimates parameters and a seasonal variation in the infection rate in an 
 SEIR model.  It requires the specification of the seasonal change rate in \code{more} by
 a list with objects
-\itemize{
+\describe{
   \item{\code{beta.fun}}{ A function to calculate beta, it should have arguments \code{t}, 
     \code{p} and \code{betadef} and return a matrix giving the value of beta at times \code{t} 
     with parameters \code{p}. }

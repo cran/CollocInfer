@@ -5,7 +5,7 @@
 \usage{
 CollocInferPlots(coefs,pars,lik,proc,times=NULL,data=NULL,
       cols=NULL,datacols=NULL,datanames=NULL,ObsPlot=TRUE,DerivPlot=TRUE,
-      DerivResid=TRUE,newplot=FALSE,cex.axis=1.5,cex.lab=1.5,cex=1.5,lwd=2)
+      cex.axis=1.5,cex.lab=1.5,cex=1.5,lwd=2)
 }
 \arguments{
 \item{coefs}{ Vector giving the current estimate of the coefficients. }
@@ -20,8 +20,6 @@ CollocInferPlots(coefs,pars,lik,proc,times=NULL,data=NULL,
 of \code{data} if not given. }
 \item{ObsPlot}{ Should a plot of predictions and observations be given? }
 \item{DerivPlot}{ Should derivative diagnostics be produced? }
-\item{DerivResid}{ Should a plot of the difference between Dx and f(x) be produced?}
-\item{newplot}{ Should plots be opened in new devices? Note if this is FALSE, DerivePlot will overwrite ObsPlot. }
 \item{cex.axis}{ Axis font size. }
 \item{cex.lab}{ Label font size. }
 \item{cex}{ Plotting point font size }

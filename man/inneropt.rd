@@ -28,6 +28,7 @@ optimization routines can be used and some experimentation is recommended. }
 # FitzHugh-Nagumo Equations
 
 data(FhNdata)   # Some data
+data(FhNest)    # with some parameter estimates
 
 knots = seq(0,20,0.2)         # Create a basis
 norder = 3

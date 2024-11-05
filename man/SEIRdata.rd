@@ -10,7 +10,7 @@
 SEIRdata
 }
 \format{
-\itemize{
+\describe{
 \item{SEIRdata}{ A 261 by 1 matrix of data generated from the SEIR Gillespie process run over 5 years.}
 \item{SEIRtimes}{ A vector of 261 observation times corresponding to SEIRdata.}
 \item{SEIRpars}{ Named parameter vector used to generate \code{SEIRdata}.}

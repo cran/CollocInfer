@@ -1,13 +1,14 @@
 \name{FhNest}
+\alias{FhNest}
 \alias{FhNestPars}
 \alias{FhNestCoefs}
 \title{Estimated Parameters for FitzHugh-Nagumo data}
 \description{Parameters Estimated for FhN Data -- used to speed up examples}
 \usage{
-FhNest
+FhNestPars
 }
 \format{
-\itemize{
+\describe{
 \item{FhNestPars}{ Estimated parameters for the FhN Data example.}
 \item{FhNestCoefs}{ Estimated coefficients for the FhN Data example.}
 }}

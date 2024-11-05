@@ -16,7 +16,7 @@ hand side of the differential equation. }
 }
 \value{Returns the output from solving the differential equation using the \code{lsoda} routines. 
 Specifically, it returns a list with elements
-\itemize{
+\describe{
 \item{times}{ The output times. }
 \item{states}{ The output states. }
 }

@@ -10,7 +10,7 @@
 FhNdata
 }
 \format{
-\itemize{
+\describe{
 \item{FhNdata}{ A 41 by 2 matrix of data generated from the FitzHugh Nagumo equations.}
 \item{FhNtimes}{ A vector of 41 observation times corresponding to FhNdata.}
 \item{FhNpars}{ Named parameter vector used to generate \code{FhNdata}.}

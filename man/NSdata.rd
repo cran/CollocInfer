@@ -8,7 +8,7 @@
 NSgroundwater
 }
 \format{
-\itemize{
+\describe{
 \item{NSgroundwater}{ A 315 by 1 matrix of data on groundwater level collected in vancouver.}
 \item{NStimes}{ A vector of 315 observation times corresponding to NSgroundwater.}
 \item{NSrainfall}{ Rainfall as a covariate to NSgroundwater; this quantity is lagged by 3 days. }

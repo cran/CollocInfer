@@ -19,7 +19,7 @@ multinorm.setup(pars,coefs=NULL,fn,basisvals=NULL,var=c(1,0.01),fd.obj=NULL,
 \item{pars}{ Initial values of parameters to be estimated processes. }
 \item{coefs}{ Vector giving the current estimate of the coefficients in the spline. }
 \item{fn}{ A function giving the right hand side of a differential/difference equation.  The function should have arguments
-\itemize{
+\describe{
   \item{times}{ The times at which the RHS is being evaluated.}
   \item{x}{ The state values at those times.}
   \item{p}{ Parameters to be entered in the system.}
@@ -28,7 +28,7 @@ It should return a matrix of the same dimension of \code{x} giving the right han
 
 If \code{fn} is given as a single function, its derivatives are estimated by finite-differencing with
 stepsize \code{eps}. Alternatively, a list can be supplied with elements:
-\itemize{
+\describe{
   \item{fn}{ Function to calculate the right hand side should accept a matrix of state values at .}
   \item{dfdx}{ Function to calculate the derivative with respect to \code{x}}
   \item{dfdp}{ Function to calculate the derivative with respect to \code{p}}
@@ -44,7 +44,7 @@ interfaced to \code{CollocInfer} through \code{pomp.skeleton} using a finite dif
 }
 \item{basisvals}{Values of the collocation basis to be used. This can either be a basis object from the \code{fda} package,
 or a list elements:
-\itemize{
+\describe{
   \item{bvals.obs}{ A matrix giving the values of the basis at the observation times}
   \item{bvals}{ A matrix giving the values of the basis at the quadrature times}
   \item{dbvals}{ A matrix giving the derivative of the basis at the quadrature times}
@@ -64,7 +64,7 @@ dimension is taken to be replicates. The data are returned, if replicated they a
 \item{weights}{(\code{LS.setup} only)  }
 \item{times}{ Vector observation times for the data. If the data are replicated, times are returned in a concatenated form.}
 \item{quadrature}{ Quadrature points, should contain two elements (if not NULL)
-\itemize{
+\describe{
   \item{qpts}{ Quadrature points; defaults to midpoints between knots}
   \item{qwts}{ Quadrature weights; defaults to normalizing by the length of \code{qpts}.   }
 }}
@@ -95,7 +95,7 @@ Defaults to the identity transform. }
 \details{These functions provide basic setup utilities for the collocation inference methods. They define
 \code{lik} and \code{proc} objects for sum of squared errors and multivariate normal log likelihoods with
 nonlinear transfer functions describing the evolution of the state vector.
-\itemize{
+\describe{
   \item{LS.setup}{ Creates sum of squares functions}
   \item{multinorm.setup}{ Creates multinormal log likelihoods for a continuous-time system.}
 }}

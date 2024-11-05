@@ -1,5 +1,6 @@
 \name{make.logtrans}
 \alias{make.logtrans}
+\alias{make.exptrans}
 \alias{make.logstate.lik}
 \alias{make.exp.Cproc}
 \alias{make.exp.Dproc}

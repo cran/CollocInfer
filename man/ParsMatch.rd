@@ -26,7 +26,7 @@ ParsMatchList(pars,coefs,proc,active=1:length(pars),allpars,sgn=1)
 }
 \value{
 \item{ParsMatchOpt}{A list containing:
-\itemize{
+\describe{
   \item{pars}{The entire parameter vector after optimization.}
   \item{res}{The output of the optimization routine.}
 }}

@@ -10,7 +10,7 @@
 ChemoRMData
 }
 \format{
-\itemize{
+\describe{
 \item{ChemoRMData}{ A 108 by 2 matrix of data observed in a chemostat.}
 \item{ChemoRMPars}{ Named parameter vector as a starting point for estimation in \code{ChemoRMData}.}
 \item{ChemoRMTime}{ A vector of 108 observation times corresponding to ChemoData.}

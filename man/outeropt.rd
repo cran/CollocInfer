@@ -47,6 +47,7 @@ existing files of those names and are deleted before the function terminates.
 
 \dontrun{
 data(FhNdata)
+data(FhNest)
 
 knots = seq(0,20,0.2)         # Create a basis
 norder = 3

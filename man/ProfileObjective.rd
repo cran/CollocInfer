@@ -43,7 +43,7 @@ ProfileList(pars,allpars,times,data,coefs,lik,proc,in.meth = "house",
 \item{use.nls}{ In ProfileSSE, is 'nls' being used in the outer-optimization?}
 \item{sumlik}{ In ProfileDP and ProfileDP.AllPar; should the gradient be given for each observation, or summed over them? }
 \item{control}{ A list giving control parameters for Newton-Raphson optimization. It should contain
-\itemize{
+\describe{
   \item{reltol}{ Relative tollerance criterion for the gradient and improvement before termination. }
   \item{maxit}{ Maximum number of iterations. }
   \item{maxtry}{ Maximum number of halving-steps to try before declaring no improvement is possible. }
@@ -54,14 +54,14 @@ iteration. }
 \value{
 \item{Profile.GausNewt}{Output of a simple Gaus-Newton iteration to optimizing the objective function when the
 observation likelihood takes the form of a sum of squared errors. Returns a list with the following elements:
-\itemize{
+\describe{
   \item{pars}{ The optimized value of the parameters.}
   \item{in.res}{ The result of the inner optimization.}
   \item{value}{ The value of the optimized sum of squared errors.}
 }}
 \item{ProfileSSE}{Output for the outer optimization when the observation likelihood is given by squared error. This is a list
 with the following elements
-\itemize{
+\describe{
   \item{value}{ The value of the outer optimization criterion.}
   \item{gradient}{ The derivative of \code{f} with respect to \code{pars}.}
   \item{coefs}{ The optimized value of \code{coefs} for the current value of \code{pars}.}
@@ -77,7 +77,7 @@ not result in optimized values that are as good as other optimizers in \code{R}.
 
 When  \code{Profile.GausNewt} is not being used, \code{ProfileSEE} and \code{ProfileERR} create the
 following temporary files:
-\itemize{
+\describe{
 \item{counter.tmp}{The number of halving-steps taken on the current optimization step.}
 \item{curcoefs.tmp}{The current estimates of the coefficients.}
 \item{optcoefs.tmp}{The optimal estimates of the coefficients in the iteration history.}  }

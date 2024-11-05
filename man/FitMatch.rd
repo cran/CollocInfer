@@ -29,7 +29,7 @@ FitMatchList(coefs,allcoefs,which,pars,proc,sgn=1)
 }
 \value{
 \item{FitMatchOpt}{A list containing
-\itemize{
+\describe{
   \item{coefs}{ The optimized coefficients for all states.}
   \item{res}{ The output of the optimization routine.}
 }}
@@ -52,6 +52,10 @@ A number of optimization routines have been implemented in \code{FitMatchOpt}, s
 ###############################
 
 data(FhNdata)
+
+# And parameter estimates
+
+data(FhNest)
 
 
 ###############################
